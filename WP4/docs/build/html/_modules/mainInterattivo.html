@@ -1,0 +1,670 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mainInterattivo &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=945aedf1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=45930005"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="../genindex.html" />
+    <link rel="search" title="Cerca" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Codice del modulo</a></li>
+      <li class="breadcrumb-item active">mainInterattivo</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Codice sorgente per mainInterattivo</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">main.py</span>
+<span class="sd">-------</span>
+<span class="sd">Simulazione completa del protocollo di voto elettronico di Fantasy Company.</span>
+
+<span class="sd">Esegue tutte le fasi del protocollo in sequenza:</span>
+<span class="sd">    - Setup: inizializzazione CA, attori istituzionali, elettori</span>
+<span class="sd">    - Fase 0: configurazione elezione (Direttore → AE)</span>
+<span class="sd">    - Fase 1: autenticazione elettori (E → SA)</span>
+<span class="sd">    - Fase 2: abilitazione e rilascio token (E → AE)</span>
+<span class="sd">    - Fase 3: preparazione scheda (lato elettore)</span>
+<span class="sd">    - Fase 4: trasmissione e registrazione (E → UE)</span>
+<span class="sd">    - Fase 5: scrutinio e pubblicazione (AE → UE)</span>
+<span class="sd">    - Fase 6: verifica individuale e universale</span>
+
+<span class="sd">Uso:</span>
+<span class="sd">    python main.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.crypto</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_keys</span><span class="p">,</span> <span class="n">verify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.CertificationAuthority</span><span class="w"> </span><span class="kn">import</span> <span class="n">CertificationAuthority</span> <span class="k">as</span> <span class="n">CA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.AuthenticationSystem</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuthenticationSystem</span> <span class="k">as</span> <span class="n">SA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.ElectionAuthority</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElectionAuthority</span> <span class="k">as</span> <span class="n">AE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.Director</span><span class="w"> </span><span class="kn">import</span> <span class="n">Director</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.Voter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Voter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.ElectronicBallotBox</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElectronicBallotBox</span> <span class="k">as</span> <span class="n">UE</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># UTILITÀ</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="print_header">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.print_header">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_header</span><span class="p">(</span><span class="n">title</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_step">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.print_step">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_step</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">desc</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  [</span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_ok">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.print_ok">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_ok</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      ✓ </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_fail">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.print_fail">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_fail</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      ✗ </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># SELEZIONE INTERATTIVA PREFERENZA</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="seleziona_preferenza">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.seleziona_preferenza">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seleziona_preferenza</span><span class="p">(</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mostra la lista dei candidati e chiede all&#39;utente di selezionare</span>
+<span class="sd">    una preferenza da riga di comando.</span>
+
+<span class="sd">    :param voter_id: identificativo dell&#39;elettore</span>
+<span class="sd">    :param candidates: lista dei candidati disponibili</span>
+<span class="sd">    :returns: preferenza selezionata (stringa) o &quot;&quot; per scheda bianca</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  ┌</span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">50</span><span class="si">}</span><span class="s2">┐&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  │  Cabina elettorale — Elettore: </span><span class="si">{</span><span class="n">voter_id</span><span class="si">:</span><span class="s2">&lt;18</span><span class="si">}</span><span class="s2">│&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ├</span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">50</span><span class="si">}</span><span class="s2">┤&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  │  </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">candidate</span><span class="si">:</span><span class="s2">&lt;46</span><span class="si">}</span><span class="s2">│&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  │  0. Scheda bianca</span><span class="si">{</span><span class="s1">&#39;&#39;</span><span class="si">:</span><span class="s2">32</span><span class="si">}</span><span class="s2">│&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  └</span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">50</span><span class="si">}</span><span class="s2">┘&quot;</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">scelta</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Inserisci il numero della tua scelta: &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">numero</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">scelta</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">numero</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Hai scelto: SCHEDA BIANCA&quot;</span><span class="p">)</span>
+                <span class="n">conferma</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;  Confermi? (s/n): &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">conferma</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scelta annullata. Riprova.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">numero</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+                <span class="n">candidato</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">numero</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Hai scelto: </span><span class="si">{</span><span class="n">candidato</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">conferma</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;  Confermi? (s/n): &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">conferma</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">candidato</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scelta annullata. Riprova.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Scelta non valida. Inserisci un numero tra 0 e </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Input non valido. Inserisci un numero.&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># SETUP</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="setup">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.setup">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;SETUP — Inizializzazione sistema&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;CA&quot;</span><span class="p">,</span> <span class="s2">&quot;Generazione chiavi CA...&quot;</span><span class="p">)</span>
+    <span class="n">ca</span> <span class="o">=</span> <span class="n">CA</span><span class="p">()</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;CA inizializzata&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">,</span> <span class="s2">&quot;Generazione chiavi SA e registrazione PKI...&quot;</span><span class="p">)</span>
+    <span class="n">sa</span> <span class="o">=</span> <span class="n">SA</span><span class="p">(</span><span class="n">ca</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;SA inizializzato e certificato pubblicato nella PKI&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">,</span> <span class="s2">&quot;Generazione chiavi AE e registrazione PKI...&quot;</span><span class="p">)</span>
+    <span class="n">ae</span> <span class="o">=</span> <span class="n">AE</span><span class="p">(</span><span class="n">ca</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;AE inizializzata e certificato pubblicato nella PKI&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;Generazione chiavi Direttore e registrazione PKI...&quot;</span><span class="p">)</span>
+    <span class="n">sk_dir</span><span class="p">,</span> <span class="n">pk_dir</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">cert_dir</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="s2">&quot;Direttore&quot;</span><span class="p">,</span> <span class="n">pk_dir</span><span class="p">)</span>
+    <span class="n">ca</span><span class="o">.</span><span class="n">publish_certificate</span><span class="p">(</span><span class="s2">&quot;Direttore&quot;</span><span class="p">,</span> <span class="n">cert_dir</span><span class="p">)</span>
+    <span class="n">director</span> <span class="o">=</span> <span class="n">Director</span><span class="p">(</span><span class="n">sk_dir</span><span class="p">,</span> <span class="n">pk_dir</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Direttore inizializzato e certificato pubblicato nella PKI&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;Generazione chiavi elettori...&quot;</span><span class="p">)</span>
+    <span class="n">voters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">voter_data</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Alice Rossi&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;bob&quot;</span><span class="p">,</span>   <span class="s2">&quot;Bob Bianchi&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;carol&quot;</span><span class="p">,</span> <span class="s2">&quot;Carol Verdi&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">voter_id</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">voter_data</span><span class="p">:</span>
+        <span class="n">sk</span><span class="p">,</span> <span class="n">pk</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+        <span class="n">sk_fido</span><span class="p">,</span> <span class="n">pk_fido</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+        <span class="n">cert_E</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">pk</span><span class="p">)</span>
+        <span class="n">voter</span> <span class="o">=</span> <span class="n">Voter</span><span class="p">(</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">sk</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">sk_fido</span><span class="p">,</span> <span class="n">pk_fido</span><span class="p">)</span>
+        <span class="n">voters</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">))</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elettore &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; (</span><span class="si">{</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">) inizializzato&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="s2">&quot;L&#39;UE sarà inizializzata dopo la Fase 0&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">director</span><span class="p">,</span> <span class="n">cert_dir</span><span class="p">,</span> <span class="n">voters</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># REGISTRAZIONE FIDO2</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="registrazione_fido2">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.registrazione_fido2">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">registrazione_fido2</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">voters</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;REGISTRAZIONE FIDO2 — prerequisito Fase 1&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span> <span class="ow">in</span> <span class="n">voters</span><span class="p">:</span>
+        <span class="n">challenge_reg</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">generate_registration_challenge</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">)</span>
+        <span class="n">sigma_reg</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">respond_to_challenge</span><span class="p">(</span><span class="n">challenge_reg</span><span class="p">)</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">complete_registration</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">voter</span><span class="o">.</span><span class="n">pk_fido</span><span class="p">,</span> <span class="n">sigma_reg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+            <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elettore &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39; registrato presso SA&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">print_fail</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registrazione fallita per &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># FASE 0</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="fase0">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase0">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase0</span><span class="p">(</span><span class="n">director</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voters</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;FASE 0 — Configurazione elezione&quot;</span><span class="p">)</span>
+
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="s2">&quot;Laura Bianchi&quot;</span><span class="p">,</span> <span class="s2">&quot;Giovanni Verdi&quot;</span><span class="p">]</span>
+    <span class="n">offices</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Roma&quot;</span><span class="p">,</span> <span class="s2">&quot;Milano&quot;</span><span class="p">]</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;D→AE&quot;</span><span class="p">,</span> <span class="s2">&quot;Direttore prepara e invia parametri elettorali...&quot;</span><span class="p">)</span>
+    <span class="n">cert_ae</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">)</span>
+    <span class="n">pk_ae</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_ae</span><span class="p">)</span>
+    <span class="n">encrypted_payload</span> <span class="o">=</span> <span class="n">director</span><span class="o">.</span><span class="n">configure_election</span><span class="p">(</span>
+        <span class="n">pk_ae</span><span class="o">=</span><span class="n">pk_ae</span><span class="p">,</span>
+        <span class="n">candidates</span><span class="o">=</span><span class="n">candidates</span><span class="p">,</span>
+        <span class="n">authorized_offices</span><span class="o">=</span><span class="n">offices</span><span class="p">,</span>
+        <span class="n">t_open</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+        <span class="n">duration_seconds</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parametri cifrati e firmati (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">encrypted_payload</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">,</span> <span class="s2">&quot;AE decifra e verifica parametri...&quot;</span><span class="p">)</span>
+    <span class="n">cert_dir</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;Direttore&quot;</span><span class="p">)</span>
+    <span class="n">ae</span><span class="o">.</span><span class="n">receive_params</span><span class="p">(</span><span class="n">encrypted_payload</span><span class="p">,</span> <span class="n">cert_dir</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Parametri verificati e sessione inizializzata&quot;</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Candidati: </span><span class="si">{</span><span class="n">candidates</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">voter</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">voters</span><span class="p">:</span>
+        <span class="n">ae</span><span class="o">.</span><span class="n">add_voter</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elettorato L = </span><span class="si">{</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">voter_id</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">voters</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="s2">&quot;Inizializzazione Urna Elettronica...&quot;</span><span class="p">)</span>
+    <span class="n">sk_ue</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">cert_ue</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">_ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">ae</span><span class="o">.</span><span class="n">_ca</span><span class="o">.</span><span class="n">publish_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="n">cert_ue</span><span class="p">)</span>
+    <span class="n">ue</span> <span class="o">=</span> <span class="n">UE</span><span class="p">(</span>
+        <span class="n">sk_ue</span><span class="o">=</span><span class="n">sk_ue</span><span class="p">,</span>
+        <span class="n">pk_ue</span><span class="o">=</span><span class="n">pk_ue</span><span class="p">,</span>
+        <span class="n">pk_ae</span><span class="o">=</span><span class="n">ae</span><span class="o">.</span><span class="n">public_key</span><span class="p">,</span>
+        <span class="n">candidates</span><span class="o">=</span><span class="n">candidates</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;UE inizializzata e certificato pubblicato nella PKI&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ue</span><span class="p">,</span> <span class="n">candidates</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># FASE 1</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="fase1">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase1">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase1</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FASE 1 — Autenticazione elettore &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">cert_sa</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">)</span>
+    <span class="n">pk_sa</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_sa</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;E→SA&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Elettore &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39; richiede autenticazione...&quot;</span><span class="p">)</span>
+
+    <span class="n">challenge</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">generate_auth_challenge</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Challenge generata (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">challenge</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">sigma_auth</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">respond_to_challenge</span><span class="p">(</span><span class="n">challenge</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Challenge firmata con sk_FIDO&quot;</span><span class="p">)</span>
+
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">verify_authentication</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">sigma_auth</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Autenticazione fallita&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Autenticazione FIDO2 verificata&quot;</span><span class="p">)</span>
+
+    <span class="n">auth_proof_encrypted</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">release_auth_proof</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">challenge</span><span class="p">,</span> <span class="n">voter</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;auth_proof cifrata rilasciata (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">auth_proof_encrypted</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">receive_auth_proof</span><span class="p">(</span><span class="n">auth_proof_encrypted</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Decifratura auth_proof fallita&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;auth_proof decifrata e conservata&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">challenge</span><span class="p">,</span> <span class="n">pk_sa</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># FASE 2</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="fase2">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase2">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase2</span><span class="p">(</span><span class="n">ae</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FASE 2 — Abilitazione elettore &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">cert_sa</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">)</span>
+    <span class="n">pk_sa</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_sa</span><span class="p">)</span>
+
+    <span class="n">cert_ae</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">)</span>
+    <span class="n">pk_ae</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_ae</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;E→AE&quot;</span><span class="p">,</span> <span class="s2">&quot;Elettore invia richiesta di abilitazione...&quot;</span><span class="p">)</span>
+    <span class="n">encrypted_request</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_authorization_request</span><span class="p">(</span><span class="n">pk_ae</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Richiesta cifrata (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">encrypted_request</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">,</span> <span class="s2">&quot;AE verifica richiesta...&quot;</span><span class="p">)</span>
+    <span class="n">entity_id</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">receive_enablement_request</span><span class="p">(</span><span class="n">encrypted_request</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_sa</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Elettore &#39;</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">&#39; abilitato&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE→E&quot;</span><span class="p">,</span> <span class="s2">&quot;AE rilascia token...&quot;</span><span class="p">)</span>
+    <span class="n">encrypted_token</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">release_token</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">voter</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Token cifrato rilasciato (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">encrypted_token</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE→E&quot;</span><span class="p">,</span> <span class="s2">&quot;AE rilascia K_pub_cifr...&quot;</span><span class="p">)</span>
+    <span class="n">encrypted_kpub</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">release_encryption_key</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;K_pub_cifr cifrata rilasciata (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">encrypted_kpub</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">ae_response</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">encrypted_token</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">encrypted_token</span> <span class="o">+</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">encrypted_kpub</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">encrypted_kpub</span>
+    <span class="p">)</span>
+
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">receive_ae_response</span><span class="p">(</span><span class="n">ae_response</span><span class="p">,</span> <span class="n">pk_ae</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Elaborazione risposta AE fallita&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Token e K_pub_cifr verificati e conservati&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># FASI 3 e 4</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="fase3_4">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase3_4">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase3_4</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">preference</span><span class="p">):</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">preference</span> <span class="k">if</span> <span class="n">preference</span> <span class="k">else</span> <span class="s2">&quot;SCHEDA BIANCA&quot;</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FASI 3-4 — Voto di &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39;: &#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">cert_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">)</span>
+    <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_ue</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;Elettore prepara la scheda...&quot;</span><span class="p">)</span>
+    <span class="n">c_trans</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="n">preference</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scheda cifrata preparata (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;E→UE&quot;</span><span class="p">,</span> <span class="s2">&quot;Elettore trasmette scheda all&#39;UE...&quot;</span><span class="p">)</span>
+    <span class="n">receipt</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">receipt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;UE ha rifiutato la scheda&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ricevuta firmata rilasciata (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">receipt</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">validate_receipt</span><span class="p">(</span><span class="n">receipt</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Verifica ricevuta fallita&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Ricevuta verificata e conservata&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># FASE 5</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="fase5">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase5">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase5</span><span class="p">(</span><span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;FASE 5 — Scrutinio e pubblicazione&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE→UE&quot;</span><span class="p">,</span> <span class="s2">&quot;AE trasmette K_priv_cifr all&#39;UE...&quot;</span><span class="p">)</span>
+    <span class="n">cert_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">)</span>
+    <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_ue</span><span class="p">)</span>
+    <span class="n">encrypted_kpriv</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">send_private_key</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;K_priv_cifr cifrata trasmessa (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">encrypted_kpriv</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="s2">&quot;UE decifra schede e calcola risultato...&quot;</span><span class="p">)</span>
+    <span class="n">verbale_package</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">close_and_tally</span><span class="p">(</span><span class="n">encrypted_kpriv</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scrutinio completato (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">verbale_package</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="n">verbale_len</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">verbale_package</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+    <span class="n">verbale_json</span> <span class="o">=</span> <span class="n">verbale_package</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">4</span> <span class="o">+</span> <span class="n">verbale_len</span><span class="p">]</span>
+    <span class="n">sigma_verbale</span> <span class="o">=</span> <span class="n">verbale_package</span><span class="p">[</span><span class="mi">4</span> <span class="o">+</span> <span class="n">verbale_len</span><span class="p">:]</span>
+    <span class="n">verbale</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">verbale_json</span><span class="p">)</span>
+
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Risultato pubblicato nel registro pubblico elettorale:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">candidato</span><span class="p">,</span> <span class="n">voti</span> <span class="ow">in</span> <span class="n">verbale</span><span class="p">[</span><span class="s2">&quot;risultato&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">candidato</span> <span class="o">==</span> <span class="s2">&quot;__scheda_bianca__&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;        Schede bianche: </span><span class="si">{</span><span class="n">voti</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">candidato</span> <span class="o">==</span> <span class="s2">&quot;__scheda_nulla__&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;        Schede nulle: </span><span class="si">{</span><span class="n">voti</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;        </span><span class="si">{</span><span class="n">candidato</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">voti</span><span class="si">}</span><span class="s2"> voti&quot;</span><span class="p">)</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Totale schede valide: </span><span class="si">{</span><span class="n">verbale</span><span class="p">[</span><span class="s1">&#39;num_schede&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">verbale</span><span class="p">,</span> <span class="n">sigma_verbale</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># FASE 6</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="fase6_individuale">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase6_individuale">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase6_individuale</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FASE 6 — Verifica individuale &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">voter</span><span class="o">.</span><span class="n">token_id</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Token non disponibile&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;E→UE&quot;</span><span class="p">,</span> <span class="s2">&quot;Elettore richiede Merkle Proof...&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">get_merkle_proof</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">token_id</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Merkle Proof non disponibile&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">proof</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">sigma_root</span> <span class="o">=</span> <span class="n">result</span>
+    <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Merkle Proof ricevuta (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">proof</span><span class="p">)</span><span class="si">}</span><span class="s2"> nodi)&quot;</span><span class="p">)</span>
+
+    <span class="n">cert_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">)</span>
+    <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_ue</span><span class="p">)</span>
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">verify_inclusion</span><span class="p">(</span><span class="n">proof</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">sigma_root</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Verifica individuale SUPERATA — scheda inclusa nel conteggio&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Verifica individuale FALLITA&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ok</span></div>
+
+
+
+<div class="viewcode-block" id="fase6_universale">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.fase6_universale">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fase6_universale</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">verbale</span><span class="p">,</span> <span class="n">sigma_verbale</span><span class="p">):</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;FASE 6 — Verifica universale&quot;</span><span class="p">)</span>
+
+    <span class="n">cert_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">)</span>
+    <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">cert_ue</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;Verifica firma digitale sul verbale...&quot;</span><span class="p">)</span>
+    <span class="n">verbale_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">verbale</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+    <span class="n">ok</span> <span class="o">=</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">,</span> <span class="n">sigma_verbale</span><span class="p">,</span> <span class="n">verbale_json</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Firma verbale verificata&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Firma verbale NON valida&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;Verifica coerenza numerica...&quot;</span><span class="p">)</span>
+    <span class="n">total_voti</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">verbale</span><span class="p">[</span><span class="s2">&quot;risultato&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">num_schede</span> <span class="o">=</span> <span class="n">verbale</span><span class="p">[</span><span class="s2">&quot;num_schede&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">total_voti</span> <span class="o">==</span> <span class="n">num_schede</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coerenza verificata: </span><span class="si">{</span><span class="n">total_voti</span><span class="si">}</span><span class="s2"> voti = </span><span class="si">{</span><span class="n">num_schede</span><span class="si">}</span><span class="s2"> schede&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incoerenza: </span><span class="si">{</span><span class="n">total_voti</span><span class="si">}</span><span class="s2"> voti ≠ </span><span class="si">{</span><span class="n">num_schede</span><span class="si">}</span><span class="s2"> schede&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;Verifica assenza token duplicati...&quot;</span><span class="p">)</span>
+    <span class="n">token_ids</span> <span class="o">=</span> <span class="n">verbale</span><span class="p">[</span><span class="s2">&quot;token_ids&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)):</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nessun token duplicato (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> token univoci)&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Token duplicati rilevati!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Verifica universale SUPERATA&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># SELEZIONE INTERATTIVA PREFERENZA CON OPZIONE RIVOTO</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="vuoi_rivotare">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.vuoi_rivotare">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">vuoi_rivotare</span><span class="p">(</span><span class="n">voter_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Chiede all&#39;elettore se vuole modificare il proprio voto.</span>
+<span class="sd">    </span>
+<span class="sd">    :param voter_id: identificativo dell&#39;elettore</span>
+<span class="sd">    :returns: True se vuole rivotare, False altrimenti</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Elettore &#39;</span><span class="si">{</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39; ha già espresso una preferenza.&quot;</span><span class="p">)</span>
+    <span class="n">scelta</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;  Vuoi modificare il tuo voto? (s/n): &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">scelta</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># MAIN</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../mainInterattivo.html#mainInterattivo.main">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  SIMULAZIONE INTERATTIVA PROTOCOLLO VOTO ELETTRONICO&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Setup</span>
+        <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">director</span><span class="p">,</span> <span class="n">cert_dir</span><span class="p">,</span> <span class="n">voters</span> <span class="o">=</span> <span class="n">setup</span><span class="p">()</span>
+
+        <span class="c1"># Registrazione FIDO2</span>
+        <span class="n">registrazione_fido2</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">voters</span><span class="p">)</span>
+
+        <span class="c1"># Fase 0</span>
+        <span class="n">ue</span><span class="p">,</span> <span class="n">candidates</span> <span class="o">=</span> <span class="n">fase0</span><span class="p">(</span><span class="n">director</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voters</span><span class="p">)</span>
+
+        <span class="c1"># Fasi 1, 2, 3, 4 per ogni elettore</span>
+        <span class="k">for</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span> <span class="ow">in</span> <span class="n">voters</span><span class="p">:</span>
+
+            <span class="c1"># Fase 1</span>
+            <span class="n">challenge</span><span class="p">,</span> <span class="n">pk_sa</span> <span class="o">=</span> <span class="n">fase1</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">challenge</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Fase 2</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="n">fase2</span><span class="p">(</span><span class="n">ae</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Primo voto</span>
+            <span class="n">preference</span> <span class="o">=</span> <span class="n">seleziona_preferenza</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="n">fase3_4</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">preference</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Rivoto — l&#39;elettore può modificare la preferenza</span>
+            <span class="k">while</span> <span class="n">vuoi_rivotare</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">):</span>
+
+                <span class="n">print_header</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;RIVOTO — Elettore &#39;</span><span class="si">{</span><span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Il voto precedente (&#39;</span><span class="si">{</span><span class="n">preference</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">preference</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;SCHEDA BIANCA&#39;</span><span class="si">}</span><span class="s2">&#39;) &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;verrà sovrascritto.&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Fase 1 — ri-autenticazione presso SA</span>
+                <span class="n">challenge</span><span class="p">,</span> <span class="n">pk_sa</span> <span class="o">=</span> <span class="n">fase1</span><span class="p">(</span><span class="n">sa</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">challenge</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Ri-autenticazione fallita&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+                <span class="c1"># Nuova preferenza</span>
+                <span class="n">new_preference</span> <span class="o">=</span> <span class="n">seleziona_preferenza</span><span class="p">(</span>
+                    <span class="n">voter</span><span class="o">.</span><span class="n">voter_id</span><span class="p">,</span> <span class="n">candidates</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Fasi 3-4 con stesso token — UE sovrascrive</span>
+                <span class="n">ok</span> <span class="o">=</span> <span class="n">fase3_4</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">new_preference</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">:</span>
+                    <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Invio nuovo voto fallito&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+                <span class="n">print_ok</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Voto aggiornato: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">preference</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">preference</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;SCHEDA BIANCA&#39;</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;→ &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">new_preference</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">new_preference</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;SCHEDA BIANCA&#39;</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
+                <span class="n">preference</span> <span class="o">=</span> <span class="n">new_preference</span>
+
+        <span class="c1"># Fase 5</span>
+        <span class="n">verbale</span><span class="p">,</span> <span class="n">sigma_verbale</span> <span class="o">=</span> <span class="n">fase5</span><span class="p">(</span><span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">)</span>
+
+        <span class="c1"># Fase 6 — verifica individuale</span>
+        <span class="k">for</span> <span class="n">voter</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">voters</span><span class="p">:</span>
+            <span class="n">fase6_individuale</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">voter</span><span class="p">)</span>
+
+        <span class="c1"># Fase 6 — verifica universale</span>
+        <span class="n">fase6_universale</span><span class="p">(</span><span class="n">ue</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="n">verbale</span><span class="p">,</span> <span class="n">sigma_verbale</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  SIMULAZIONE COMPLETATA CON SUCCESSO&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  ERRORE: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

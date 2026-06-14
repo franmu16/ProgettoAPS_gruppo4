@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>attacks &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=945aedf1"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=45930005"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="../genindex.html" />
+    <link rel="search" title="Cerca" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Codice del modulo</a></li>
+      <li class="breadcrumb-item active">attacks</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Codice sorgente per attacks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Simulazione degli attacchi al protocollo di voto elettronico.</span>
+
+<span class="sd">Per ogni attacco vengono mostrati:</span>
+<span class="sd">    - Descrizione dell&#39;attacco</span>
+<span class="sd">    - Esito atteso</span>
+<span class="sd">    - Conferma che la contromisura funziona (✓) o che il limite è reale (✗)</span>
+
+<span class="sd">Attacchi simulati:</span>
+<span class="sd">    1. Replay attack          — reinvio di una scheda intercettata</span>
+<span class="sd">    2. Token auto-generato    — token firmato con chiave non autorizzata</span>
+<span class="sd">    3. Certificato contraffatto — MitM sostituisce il certificato del SA</span>
+<span class="sd">    4. Doppia abilitazione    — AE disonesta emette due token per lo stesso elettore</span>
+<span class="sd">    5. Modifica scheda        — MitM altera il ciphertext in transito</span>
+<span class="sd">    6. Collusione AE+UE       — violazione dello pseudoanonimato</span>
+<span class="sd">    7. UE disonesta           — non sovrascrive, accetta schede multiple</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.crypto</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_keys</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">encrypt_OAEP</span><span class="p">,</span> <span class="n">encrypt_chunked</span><span class="p">,</span> <span class="n">hash_SHA256</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.CertificationAuthority</span><span class="w"> </span><span class="kn">import</span> <span class="n">CertificationAuthority</span> <span class="k">as</span> <span class="n">CA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.AuthenticationSystem</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuthenticationSystem</span> <span class="k">as</span> <span class="n">SA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.ElectionAuthority</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElectionAuthority</span> <span class="k">as</span> <span class="n">AE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.Director</span><span class="w"> </span><span class="kn">import</span> <span class="n">Director</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.Voter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Voter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Actors.ElectronicBallotBox</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElectronicBallotBox</span> <span class="k">as</span> <span class="n">UE</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># UTILITÀ</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="print_header">
+<a class="viewcode-back" href="../attacks.html#attacks.print_header">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_header</span><span class="p">(</span><span class="n">title</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">62</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="mi">62</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_attack">
+<a class="viewcode-back" href="../attacks.html#attacks.print_attack">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_attack</span><span class="p">(</span><span class="n">desc</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  ⚔  Attacco: </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_ok">
+<a class="viewcode-back" href="../attacks.html#attacks.print_ok">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_ok</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      ✓ MITIGATO — </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_fail">
+<a class="viewcode-back" href="../attacks.html#attacks.print_fail">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_fail</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      ✗ LIMITE   — </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_step">
+<a class="viewcode-back" href="../attacks.html#attacks.print_step">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_step</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      → </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="separatore">
+<a class="viewcode-back" href="../attacks.html#attacks.separatore">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">separatore</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">60</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># SETUP COMUNE</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="setup_sistema">
+<a class="viewcode-back" href="../attacks.html#attacks.setup_sistema">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_sistema</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Inizializza il sistema con CA, SA, AE, UE e un elettore.&quot;&quot;&quot;</span>
+    <span class="n">ca</span> <span class="o">=</span> <span class="n">CA</span><span class="p">()</span>
+    <span class="n">sa</span> <span class="o">=</span> <span class="n">SA</span><span class="p">(</span><span class="n">ca</span><span class="p">)</span>
+    <span class="n">ae</span> <span class="o">=</span> <span class="n">AE</span><span class="p">(</span><span class="n">ca</span><span class="p">)</span>
+
+    <span class="n">sk_dir</span><span class="p">,</span> <span class="n">pk_dir</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">cert_dir</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="s2">&quot;Direttore&quot;</span><span class="p">,</span> <span class="n">pk_dir</span><span class="p">)</span>
+    <span class="n">ca</span><span class="o">.</span><span class="n">publish_certificate</span><span class="p">(</span><span class="s2">&quot;Direttore&quot;</span><span class="p">,</span> <span class="n">cert_dir</span><span class="p">)</span>
+    <span class="n">director</span> <span class="o">=</span> <span class="n">Director</span><span class="p">(</span><span class="n">sk_dir</span><span class="p">,</span> <span class="n">pk_dir</span><span class="p">)</span>
+
+    <span class="n">sk_ue</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">cert_ue</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">ca</span><span class="o">.</span><span class="n">publish_certificate</span><span class="p">(</span><span class="s2">&quot;UE&quot;</span><span class="p">,</span> <span class="n">cert_ue</span><span class="p">)</span>
+
+    <span class="c1"># Fase 0</span>
+    <span class="n">pk_ae</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">))</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">director</span><span class="o">.</span><span class="n">configure_election</span><span class="p">(</span>
+        <span class="n">pk_ae</span><span class="o">=</span><span class="n">pk_ae</span><span class="p">,</span>
+        <span class="n">candidates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="s2">&quot;Laura Bianchi&quot;</span><span class="p">,</span> <span class="s2">&quot;Giovanni Verdi&quot;</span><span class="p">],</span>
+        <span class="n">authorized_offices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Roma&quot;</span><span class="p">],</span>
+        <span class="n">t_open</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
+        <span class="n">duration_seconds</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ae</span><span class="o">.</span><span class="n">receive_params</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">cert_dir</span><span class="p">)</span>
+
+    <span class="n">ue</span> <span class="o">=</span> <span class="n">UE</span><span class="p">(</span>
+        <span class="n">sk_ue</span><span class="o">=</span><span class="n">sk_ue</span><span class="p">,</span>
+        <span class="n">pk_ue</span><span class="o">=</span><span class="n">pk_ue</span><span class="p">,</span>
+        <span class="n">pk_ae</span><span class="o">=</span><span class="n">ae</span><span class="o">.</span><span class="n">public_key</span><span class="p">,</span>
+        <span class="n">candidates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="s2">&quot;Laura Bianchi&quot;</span><span class="p">,</span> <span class="s2">&quot;Giovanni Verdi&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Elettore alice</span>
+    <span class="n">sk_v</span><span class="p">,</span> <span class="n">pk_v</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">sk_f</span><span class="p">,</span> <span class="n">pk_f</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">voter</span> <span class="o">=</span> <span class="n">Voter</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">sk_v</span><span class="p">,</span> <span class="n">pk_v</span><span class="p">,</span> <span class="n">sk_f</span><span class="p">,</span> <span class="n">pk_f</span><span class="p">)</span>
+    <span class="n">cert_E</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">pk_v</span><span class="p">)</span>
+    <span class="n">ae</span><span class="o">.</span><span class="n">add_voter</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Registrazione FIDO2</span>
+    <span class="n">ch</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">generate_registration_challenge</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+    <span class="n">sa</span><span class="o">.</span><span class="n">complete_registration</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">pk_f</span><span class="p">,</span> <span class="n">voter</span><span class="o">.</span><span class="n">respond_to_challenge</span><span class="p">(</span><span class="n">ch</span><span class="p">))</span>
+
+    <span class="c1"># Autenticazione e abilitazione</span>
+    <span class="n">ch</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">generate_auth_challenge</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">respond_to_challenge</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+    <span class="n">sa</span><span class="o">.</span><span class="n">verify_authentication</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">sig</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">)</span>
+    <span class="n">ap</span> <span class="o">=</span> <span class="n">sa</span><span class="o">.</span><span class="n">release_auth_proof</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">ch</span><span class="p">,</span> <span class="n">pk_v</span><span class="p">)</span>
+    <span class="n">voter</span><span class="o">.</span><span class="n">receive_auth_proof</span><span class="p">(</span><span class="n">ap</span><span class="p">)</span>
+
+    <span class="n">pk_ae2</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">))</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_authorization_request</span><span class="p">(</span><span class="n">pk_ae2</span><span class="p">)</span>
+    <span class="n">pk_sa</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">))</span>
+    <span class="n">ae</span><span class="o">.</span><span class="n">receive_enablement_request</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_sa</span><span class="p">)</span>
+    <span class="n">et</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">release_token</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">pk_v</span><span class="p">)</span>
+    <span class="n">ek</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">release_encryption_key</span><span class="p">(</span><span class="n">pk_v</span><span class="p">)</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">et</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">et</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">ek</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ek</span>
+    <span class="n">voter</span><span class="o">.</span><span class="n">receive_ae_response</span><span class="p">(</span><span class="n">resp</span><span class="p">,</span> <span class="n">pk_ae2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 1 — REPLAY ATTACK</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_replay">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_replay">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_replay</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 1 — Replay Attack&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: il MitM intercetta una scheda valida e la reinvia&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  all&#39;UE per far contare il voto due volte.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="c1"># Elettore vota regolarmente</span>
+    <span class="n">c_trans</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;Elettore invia scheda legittima all&#39;UE&quot;</span><span class="p">)</span>
+    <span class="n">receipt</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;UE accetta la scheda (ricevuta: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">receipt</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># MitM reinvia la stessa scheda</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;MitM reinvia c_trans intercettata&quot;</span><span class="p">)</span>
+    <span class="n">receipt2</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">receipt2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;UE ha rigettato la scheda replicata — nonce già visto nel registro&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;UE ha accettato la scheda replicata!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 2 — TOKEN AUTO-GENERATO</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_token_falso">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_token_falso">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_token_falso</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 2 — Token Auto-Generato&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: un attaccante non abilitato costruisce un token&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  firmandolo con una chiave propria invece di sk_AE.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="c1"># Attaccante genera chiave propria e firma il token</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;Attaccante genera token con sk_fake (non sk_AE)&quot;</span><span class="p">)</span>
+    <span class="n">sk_fake</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+    <span class="n">fake_token_id</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+    <span class="n">fake_sigma</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="n">sk_fake</span><span class="p">,</span> <span class="n">fake_token_id</span><span class="p">)</span>
+
+    <span class="c1"># Costruisce payload scheda con token falso</span>
+    <span class="n">nonce</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+    <span class="n">cv</span> <span class="o">=</span> <span class="n">encrypt_OAEP</span><span class="p">(</span><span class="n">ae</span><span class="o">.</span><span class="n">k_pub_cifr</span><span class="p">,</span> <span class="s2">&quot;Mario Rossi&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="n">ballot_id</span> <span class="o">=</span> <span class="n">hash_SHA256</span><span class="p">(</span><span class="n">fake_token_id</span> <span class="o">+</span> <span class="n">cv</span> <span class="o">+</span> <span class="n">nonce</span><span class="p">)</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">fake_token_id</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">fake_token_id</span>
+        <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">cv</span>
+        <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">fake_sigma</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">fake_sigma</span>
+        <span class="o">+</span> <span class="n">nonce</span>
+    <span class="p">)</span>
+    <span class="n">c_trans</span> <span class="o">=</span> <span class="n">encrypt_chunked</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;Attaccante invia scheda con token falso all&#39;UE&quot;</span><span class="p">)</span>
+    <span class="n">receipt</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">receipt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;UE ha rigettato la scheda — Vrfy_pkAE(token, sigma) = 0&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;UE ha accettato la scheda con token falso!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 3 — CERTIFICATO CONTRAFFATTO (MitM)</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_certificato_contraffatto">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_certificato_contraffatto">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_certificato_contraffatto</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 3 — Certificato Contraffatto (MitM)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: il MitM intercetta la comunicazione e presenta&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  un certificato del SA contenente la propria chiave pubblica.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="c1"># MitM genera propria coppia di chiavi</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;MitM sostituisce il certificato del SA con il proprio&quot;</span><span class="p">)</span>
+    <span class="n">sk_mitm</span><span class="p">,</span> <span class="n">pk_mitm</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+
+    <span class="c1"># Crea certificato contraffatto (non firmato dalla CA)</span>
+    <span class="n">fake_cert</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;entity_id&quot;</span><span class="p">:</span> <span class="s2">&quot;SA&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;public_key&quot;</span><span class="p">:</span> <span class="n">pk_mitm</span><span class="p">,</span>
+        <span class="s2">&quot;signature&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>  <span class="c1"># firma casuale non valida</span>
+    <span class="p">}</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;MitM presenta cert_SA con pk_MitM al posto di pk_SA&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Elettore verifica il certificato tramite pkCA</span>
+    <span class="n">is_valid</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">verify_certificate</span><span class="p">(</span><span class="n">fake_cert</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Elettore ha rilevato il certificato contraffatto — firma CA invalida&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Elettore ha accettato il certificato contraffatto!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Attacco B: MitM modifica il certificato autentico</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;MitM modifica pk_SA nel certificato autentico&quot;</span><span class="p">)</span>
+    <span class="n">cert_sa_reale</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">)</span>
+    <span class="n">cert_modificato</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;entity_id&quot;</span><span class="p">:</span> <span class="n">cert_sa_reale</span><span class="p">[</span><span class="s2">&quot;entity_id&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;public_key&quot;</span><span class="p">:</span> <span class="n">pk_mitm</span><span class="p">,</span>           <span class="c1"># sostituisce pk_SA con pk_MitM</span>
+        <span class="s2">&quot;signature&quot;</span><span class="p">:</span> <span class="n">cert_sa_reale</span><span class="p">[</span><span class="s2">&quot;signature&quot;</span><span class="p">]</span>  <span class="c1"># firma originale ora invalida</span>
+    <span class="p">}</span>
+    <span class="n">is_valid2</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">verify_certificate</span><span class="p">(</span><span class="n">cert_modificato</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_valid2</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Elettore ha rilevato la modifica — firma CA copre anche pk_SA&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;Elettore ha accettato il certificato modificato!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 4 — DOPPIA ABILITAZIONE (AE DISONESTA)</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_doppia_abilitazione">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_doppia_abilitazione">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_doppia_abilitazione</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 4 — Doppia Abilitazione (AE Disonesta)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: AE disonesta emette due token validi per lo stesso&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  elettore, consentendogli di votare due volte.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="c1"># Primo voto regolare</span>
+    <span class="n">c_trans1</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">receipt1</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans1</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;Primo voto registrato regolarmente&quot;</span><span class="p">)</span>
+
+    <span class="c1"># AE disonesta: rimuove alice dal registro abilitati e rilascia secondo token</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;AE disonesta rimuove alice da _enabled_voters e rilascia secondo token&quot;</span><span class="p">)</span>
+    <span class="n">ae</span><span class="o">.</span><span class="n">_enabled_voters</span><span class="p">[</span><span class="s2">&quot;alice&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># AE disonesta re-abilita alice</span>
+    <span class="n">et2</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">release_token</span><span class="p">(</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">voter</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">ek2</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">release_encryption_key</span><span class="p">(</span><span class="n">voter</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">resp2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">et2</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">et2</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">ek2</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ek2</span>
+
+    <span class="c1"># Elettore riceve il secondo token</span>
+    <span class="n">pk_ae</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">extract_public_key</span><span class="p">(</span><span class="n">ca</span><span class="o">.</span><span class="n">get_certificate</span><span class="p">(</span><span class="s2">&quot;AE&quot;</span><span class="p">))</span>
+    <span class="n">voter</span><span class="o">.</span><span class="n">receive_ae_response</span><span class="p">(</span><span class="n">resp2</span><span class="p">,</span> <span class="n">pk_ae</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;AE rilascia secondo token — alice ora ha due token distinti&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Secondo voto con nuovo token</span>
+    <span class="n">c_trans2</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="s2">&quot;Laura Bianchi&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">receipt2</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">receipt2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span>
+            <span class="s2">&quot;UE ha accettato il secondo voto — due token diversi appaiono legittimi. &quot;</span>
+            <span class="s2">&quot;L&#39;UE non può sapere che appartengono allo stesso elettore (limite dichiarato)&quot;</span>
+        <span class="p">)</span>
+        <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Schede registrate: </span><span class="si">{</span><span class="n">ue</span><span class="o">.</span><span class="n">get_num_valid_ballots</span><span class="p">()</span><span class="si">}</span><span class="s2"> (atteso: 1)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Mitigazione parziale: la discrepanza è rilevabile dalla verifica universale</span>
+        <span class="n">print_step</span><span class="p">(</span>
+            <span class="s2">&quot;Mitigazione parziale: al termine, |token_ids| &gt; |L| è rilevabile &quot;</span>
+            <span class="s2">&quot;confrontando i token pubblicati con la cardinalità di L firmata dal D&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;UE ha rigettato il secondo voto&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 5 — MODIFICA SCHEDA IN TRANSITO (MitM)</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_modifica_scheda">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_modifica_scheda">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_modifica_scheda</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 5 — Modifica Scheda in Transito (MitM)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: il MitM intercetta c_trans e altera un byte&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  prima che raggiunga l&#39;UE.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="n">c_trans</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scheda originale prodotta (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># MitM altera un byte nel mezzo del ciphertext</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;MitM altera un byte nel ciphertext c_trans&quot;</span><span class="p">)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">c_tampered</span> <span class="o">=</span> <span class="n">c_trans</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span> <span class="o">+</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">c_trans</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">^</span> <span class="mh">0xFF</span><span class="p">])</span> <span class="o">+</span> <span class="n">c_trans</span><span class="p">[</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Byte </span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s2"> modificato: </span><span class="si">{</span><span class="n">c_trans</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">c_tampered</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="si">:</span><span class="s2">02x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">receipt</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_tampered</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">receipt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;UE ha scartato la scheda — padding OAEP non integro dopo l&#39;alterazione&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span><span class="s2">&quot;UE ha accettato la scheda alterata!&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 6 — COLLUSIONE AE + UE</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_collusione_ae_ue">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_collusione_ae_ue">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_collusione_ae_ue</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 6 — Collusione AE + UE (Pseudoanonimato)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: AE e UE colludono condividendo le rispettive&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  conoscenze per associare identità e preferenza.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="c1"># Elettore vota</span>
+    <span class="n">c_trans</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span>
+
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;AE condivide la mappatura (E_id → token_id) con UE&quot;</span><span class="p">)</span>
+
+    <span class="c1"># AE conosce: E_id → token_id</span>
+    <span class="c1"># Ricaviamo il token_id dal registro interno dell&#39;AE</span>
+    <span class="c1"># In un sistema reale l&#39;AE avrebbe memorizzato questa associazione</span>
+    <span class="n">token_id</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">token_id</span><span class="p">()</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AE rivela: &#39;alice&#39; → token_id=</span><span class="si">{</span><span class="n">token_id</span><span class="o">.</span><span class="n">hex</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># UE conosce: token_id → cv (voto cifrato)</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">record</span><span class="p">:</span>
+        <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;UE ha in registro: token_id → cv=</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">&#39;cv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">hex</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;Ricostruzione catena: alice → token_id → cv&quot;</span><span class="p">)</span>
+        <span class="n">print_fail</span><span class="p">(</span>
+            <span class="s2">&quot;Pseudoanonimato violato — la collusione AE+UE permette di &quot;</span>
+            <span class="s2">&quot;associare l&#39;identità al voto cifrato. Limite dichiarato nel WP3: &quot;</span>
+            <span class="s2">&quot;non eliminabile senza blind signature o ZKP.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;token_id non trovato nel registro UE&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># ATTACCO 7 — UE DISONESTA (SCHEDE MULTIPLE PER STESSO TOKEN)</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="attacco_ue_disonesta">
+<a class="viewcode-back" href="../attacks.html#attacks.attacco_ue_disonesta">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attacco_ue_disonesta</span><span class="p">():</span>
+    <span class="n">print_header</span><span class="p">(</span><span class="s2">&quot;ATTACCO 7 — UE Disonesta (Schede Multiple per Stesso Token)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Scenario: UE disonesta non sovrascrive il record ma duplica&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  la foglia nel Merkle Tree per conteggiare due volte lo stesso voto.&quot;</span><span class="p">)</span>
+    <span class="n">separatore</span><span class="p">()</span>
+
+    <span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="n">ae</span><span class="p">,</span> <span class="n">ue</span><span class="p">,</span> <span class="n">voter</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">,</span> <span class="n">pk_ue</span> <span class="o">=</span> <span class="n">setup_sistema</span><span class="p">()</span>
+
+    <span class="c1"># Voto legittimo</span>
+    <span class="n">c_trans</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">prepare_ballot</span><span class="p">(</span><span class="s2">&quot;Mario Rossi&quot;</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">ue</span><span class="o">.</span><span class="n">receive_ballot</span><span class="p">(</span><span class="n">c_trans</span><span class="p">)</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="s2">&quot;Scheda registrata regolarmente&quot;</span><span class="p">)</span>
+
+    <span class="c1"># UE disonesta: duplica il record nel registro</span>
+    <span class="n">print_attack</span><span class="p">(</span><span class="s2">&quot;UE disonesta duplica il record nel proprio registro&quot;</span><span class="p">)</span>
+    <span class="n">token_id</span> <span class="o">=</span> <span class="n">voter</span><span class="o">.</span><span class="n">token_id</span><span class="p">()</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">token_id</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># Inserisce il record con un token_id fittizio per simulare duplicazione</span>
+    <span class="n">fake_token</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+    <span class="n">ue</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">fake_token</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span>
+    <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registro UE ora contiene </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ue</span><span class="o">.</span><span class="n">_registry</span><span class="p">)</span><span class="si">}</span><span class="s2"> schede (atteso: 1)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Scrutinio</span>
+    <span class="n">sk_ue_priv</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">sk_ue</span>
+    <span class="n">encrypted_kpriv</span> <span class="o">=</span> <span class="n">ae</span><span class="o">.</span><span class="n">send_private_key</span><span class="p">(</span><span class="n">ue</span><span class="o">.</span><span class="n">pk_ue</span><span class="p">)</span>
+    <span class="n">verbale_pkg</span> <span class="o">=</span> <span class="n">ue</span><span class="o">.</span><span class="n">close_and_tally</span><span class="p">(</span><span class="n">encrypted_kpriv</span><span class="p">)</span>
+
+    <span class="n">vlen</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">verbale_pkg</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+    <span class="n">verbale</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">verbale_pkg</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">4</span><span class="o">+</span><span class="n">vlen</span><span class="p">])</span>
+
+    <span class="n">print_step</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Verbale pubblicato: </span><span class="si">{</span><span class="n">verbale</span><span class="p">[</span><span class="s1">&#39;num_schede&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> schede, token_ids: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">verbale</span><span class="p">[</span><span class="s1">&#39;token_ids&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Verifica universale: confronto token_ids con elettorato atteso</span>
+    <span class="n">elettorato_atteso</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># solo alice</span>
+    <span class="n">token_pubblicati</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">verbale</span><span class="p">[</span><span class="s2">&quot;token_ids&quot;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">token_pubblicati</span> <span class="o">&gt;</span> <span class="n">elettorato_atteso</span><span class="p">:</span>
+        <span class="n">print_fail</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Anomalia rilevabile: </span><span class="si">{</span><span class="n">token_pubblicati</span><span class="si">}</span><span class="s2"> token pubblicati &gt; &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">elettorato_atteso</span><span class="si">}</span><span class="s2"> elettori abilitati. &quot;</span>
+            <span class="s2">&quot;Chiunque può rilevare la discrepanza confrontando |token_ids| con |L|.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">print_ok</span><span class="p">(</span><span class="s2">&quot;Nessuna anomalia rilevata&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># MAIN</span>
+<span class="c1"># =============================================================================</span>
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../attacks.html#attacks.main">[documenti]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">62</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  SIMULAZIONE ATTACCHI — PROTOCOLLO VOTO ELETTRONICO&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">62</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Legenda:  ✓ MITIGATO  |  ✗ LIMITE DICHIARATO&quot;</span><span class="p">)</span>
+
+    <span class="n">attacco_replay</span><span class="p">()</span>
+    <span class="n">attacco_token_falso</span><span class="p">()</span>
+    <span class="n">attacco_certificato_contraffatto</span><span class="p">()</span>
+    <span class="n">attacco_doppia_abilitazione</span><span class="p">()</span>
+    <span class="n">attacco_modifica_scheda</span><span class="p">()</span>
+    <span class="n">attacco_collusione_ae_ue</span><span class="p">()</span>
+    <span class="n">attacco_ue_disonesta</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">62</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  SIMULAZIONE ATTACCHI COMPLETATA&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">62</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

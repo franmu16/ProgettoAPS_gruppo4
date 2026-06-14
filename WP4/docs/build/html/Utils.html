@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utils package &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=945aedf1"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=45930005"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="genindex.html" />
+    <link rel="search" title="Cerca" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Utils package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-Utils.MerkleTree">Utils.MerkleTree module</a><ul>
+<li><a class="reference internal" href="#Utils.MerkleTree.build_merkle_tree"><code class="docutils literal notranslate"><span class="pre">build_merkle_tree()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.MerkleTree.generate_merkle_proof"><code class="docutils literal notranslate"><span class="pre">generate_merkle_proof()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.MerkleTree.verify_merkle_proof"><code class="docutils literal notranslate"><span class="pre">verify_merkle_proof()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Utils.crypto">Utils.crypto module</a><ul>
+<li><a class="reference internal" href="#Utils.crypto.decrypt_OAEP"><code class="docutils literal notranslate"><span class="pre">decrypt_OAEP()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.decrypt_chunked"><code class="docutils literal notranslate"><span class="pre">decrypt_chunked()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.encrypt_OAEP"><code class="docutils literal notranslate"><span class="pre">encrypt_OAEP()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.encrypt_chunked"><code class="docutils literal notranslate"><span class="pre">encrypt_chunked()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.generate_keys"><code class="docutils literal notranslate"><span class="pre">generate_keys()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.hash_SHA256"><code class="docutils literal notranslate"><span class="pre">hash_SHA256()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.sign"><code class="docutils literal notranslate"><span class="pre">sign()</span></code></a></li>
+<li><a class="reference internal" href="#Utils.crypto.verify"><code class="docutils literal notranslate"><span class="pre">verify()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Utils.rst.txt" rel="nofollow"> Visualizza sorgente pagina</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="utils-package">
+<h1>Utils package<a class="headerlink" href="#utils-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Utils.MerkleTree">
+<span id="utils-merkletree-module"></span><h2>Utils.MerkleTree module<a class="headerlink" href="#module-Utils.MerkleTree" title="Link to this heading"></a></h2>
+<p>Struttura dati Merkle Tree per la verifica delle schede.</p>
+<dl class="simple">
+<dt>Espone:</dt><dd><p>build_merkle_tree      costruzione bottom-up
+generate_merkle_proof  prova di inclusione per una foglia
+verify_merkle_proof    verifica della prova rispetto alla root</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.MerkleTree.build_merkle_tree">
+<span class="sig-prename descclassname"><span class="pre">Utils.MerkleTree.</span></span><span class="sig-name descname"><span class="pre">build_merkle_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leaves</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/Utils/MerkleTree.html#build_merkle_tree"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.MerkleTree.build_merkle_tree" title="Link to this definition"></a></dt>
+<dd><p>Costruisce il Merkle Tree a partire dall’elenco di foglie <em>leaves</em>.</p>
+<p>Ogni foglia deve essere già un digest SHA-256 (32 byte).
+Se il numero di nodi ad un livello è dispari, l’ultimo viene duplicato.</p>
+<dl class="simple">
+<dt>Restituisce:</dt><dd><p>root  – digest radice (bytes)
+tree  – lista di livelli, dal basso (foglie) verso l’alto (radice)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.MerkleTree.generate_merkle_proof">
+<span class="sig-prename descclassname"><span class="pre">Utils.MerkleTree.</span></span><span class="sig-name descname"><span class="pre">generate_merkle_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leaf_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/Utils/MerkleTree.html#generate_merkle_proof"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.MerkleTree.generate_merkle_proof" title="Link to this definition"></a></dt>
+<dd><p>Genera la Merkle Proof per la foglia all’indice <em>leaf_index</em>.</p>
+<p>Restituisce una lista di coppie (posizione, hash_fratello) dove
+posizione ∈ {«left», «right»} indica da che lato si trova il fratello
+rispetto al nodo corrente. La lista va letta dal basso verso la radice.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.MerkleTree.verify_merkle_proof">
+<span class="sig-prename descclassname"><span class="pre">Utils.MerkleTree.</span></span><span class="sig-name descname"><span class="pre">verify_merkle_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leaf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/Utils/MerkleTree.html#verify_merkle_proof"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.MerkleTree.verify_merkle_proof" title="Link to this definition"></a></dt>
+<dd><p>Verifica che <em>leaf</em> sia inclusa nell’albero con radice <em>root</em>,
+usando la Merkle Proof <em>proof</em>.</p>
+<p>Restituisce True se la verifica ha esito positivo, False altrimenti.</p>
+</dd></dl>
+
+</section>
+<section id="module-Utils.crypto">
+<span id="utils-crypto-module"></span><h2>Utils.crypto module<a class="headerlink" href="#module-Utils.crypto" title="Link to this heading"></a></h2>
+<p>Modulo contenente le primitive crittografiche.</p>
+<dl class="simple">
+<dt>Primitive implementate:</dt><dd><ul class="simple">
+<li><p>Generazione chiavi RSA</p></li>
+<li><p>Cifratura/Decifratura RSA-OAEP</p></li>
+<li><p>Firma/Verifica RSA-PSS</p></li>
+<li><p>Hashing SHA-256</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.decrypt_OAEP">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">decrypt_OAEP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ciphertext</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#decrypt_OAEP"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.decrypt_OAEP" title="Link to this definition"></a></dt>
+<dd><p>Decifra un testo cifrato con RSA-OAEP usando SHA-256.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>private_key</strong> – chiave privata RSA del destinatario</p></li>
+<li><p><strong>ciphertext</strong> – testo cifrato (bytes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>messaggio in chiaro (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – se ciphertext non è bytes</p></li>
+<li><p><strong>ValueError</strong> – se il ciphertext è corrotto o il padding non è valido</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.decrypt_chunked">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">decrypt_chunked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#decrypt_chunked"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.decrypt_chunked" title="Link to this definition"></a></dt>
+<dd><p>Decifra un messaggio cifrato con encrypt_chunked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>private_key</strong> – chiave privata RSA del destinatario</p></li>
+<li><p><strong>data</strong> – messaggio cifrato a blocchi (bytes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>messaggio in chiaro riassemblato (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – se data non è bytes</p></li>
+<li><p><strong>ValueError</strong> – se il formato del messaggio non è valido</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.encrypt_OAEP">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">encrypt_OAEP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">public_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plaintext</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#encrypt_OAEP"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.encrypt_OAEP" title="Link to this definition"></a></dt>
+<dd><p>Cifra un messaggio con RSA-OAEP usando SHA-256.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>public_key</strong> – chiave pubblica RSA del destinatario</p></li>
+<li><p><strong>plaintext</strong> – messaggio in chiaro (bytes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>testo cifrato (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – se plaintext non è bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.encrypt_chunked">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">encrypt_chunked</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">public_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plaintext</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#encrypt_chunked"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.encrypt_chunked" title="Link to this definition"></a></dt>
+<dd><p>Cifra un messaggio di dimensione arbitraria con RSA-OAEP
+suddividendolo in blocchi da CHUNK_SIZE byte.</p>
+<dl class="simple">
+<dt>Formato output:</dt><dd><p>2B num_blocchi | (4B len_blocco | blocco_cifrato) * num_blocchi</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>public_key</strong> – chiave pubblica RSA del destinatario</p></li>
+<li><p><strong>plaintext</strong> – messaggio in chiaro (bytes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>messaggio cifrato a blocchi (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – se plaintext non è bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.generate_keys">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">generate_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#generate_keys"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.generate_keys" title="Link to this definition"></a></dt>
+<dd><p>Genera una coppia di chiavi RSA.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>size</strong> – dimensione della chiave in bit (minimo 2048)</p>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>tupla (private_key, public_key)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – se size &lt; 2048</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.hash_SHA256">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">hash_SHA256</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#hash_SHA256"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.hash_SHA256" title="Link to this definition"></a></dt>
+<dd><p>Calcola il digest SHA-256 di un messaggio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> – messaggio da hashare (bytes)</p>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>digest SHA-256 di 256 bit (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – se message non è bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.sign">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">sign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">private_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#sign"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.sign" title="Link to this definition"></a></dt>
+<dd><p>Firma un messaggio con RSA-PSS usando SHA-256.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>private_key</strong> – chiave privata RSA del firmatario</p></li>
+<li><p><strong>m</strong> – messaggio da firmare (bytes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>firma digitale (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – se m non è bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Utils.crypto.verify">
+<span class="sig-prename descclassname"><span class="pre">Utils.crypto.</span></span><span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">public_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Utils/crypto.html#verify"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Utils.crypto.verify" title="Link to this definition"></a></dt>
+<dd><p>Verifica la firma digitale RSA-PSS su un messaggio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>public_key</strong> – chiave pubblica RSA del firmatario</p></li>
+<li><p><strong>signature</strong> – firma da verificare (bytes)</p></li>
+<li><p><strong>message</strong> – messaggio originale (bytes)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>True se la firma è valida, False se non valida</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>TypeError</strong> – se message non è bytes</p></li>
+<li><p><strong>RuntimeError</strong> – in caso di errore inatteso</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Utils" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

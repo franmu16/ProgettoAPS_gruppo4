@@ -1,0 +1,225 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actors.CertificationAuthority &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=945aedf1"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/translations.js?v=45930005"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="../../genindex.html" />
+    <link rel="search" title="Cerca" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Codice del modulo</a></li>
+      <li class="breadcrumb-item active">Actors.CertificationAuthority</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Codice sorgente per Actors.CertificationAuthority</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Modulo che implementa la Certification Authority (CA).</span>
+
+<span class="sd">È responsabile dell&#39;emissione e della verifica dei certificati digitali</span>
+<span class="sd">per tutti gli attori del sistema.</span>
+
+<span class="sd">Responsabilità:</span>
+<span class="sd">    - Generazione e gestione della propria coppia di chiavi RSA</span>
+<span class="sd">    - Emissione di certificati digitali X.509 (semplificati) per gli attori</span>
+<span class="sd">    - Verifica dell&#39;autenticità dei certificati tramite la propria firma</span>
+<span class="sd">    - Gestione del registro pubblico dei certificati degli attori istituzionali</span>
+<span class="sd">      (D, SA, AE, UE) — i certificati degli elettori non sono pubblicati</span>
+<span class="sd">      per preservare il requisito di pseudoanonimato.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.crypto</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_keys</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">verify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.hazmat.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">serialization</span>
+
+
+<div class="viewcode-block" id="CertificationAuthority">
+<a class="viewcode-back" href="../../Actors.html#Actors.CertificationAuthority.CertificationAuthority">[documenti]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CertificationAuthority</span><span class="p">:</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Genera la coppia di chiavi della CA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">public_key</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+        <span class="c1"># Registro dei certificati pubblici degli attori istituzionali</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span> <span class="o">=</span> <span class="p">{}</span>
+    
+
+
+<div class="viewcode-block" id="CertificationAuthority.generate_certificate">
+<a class="viewcode-back" href="../../Actors.html#Actors.CertificationAuthority.CertificationAuthority.generate_certificate">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">public_key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Emette un certificato per un&#39;entità.</span>
+<span class="sd">        Il certificato è un dizionario firmato dalla CA.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;entity_id&quot;</span><span class="p">:</span> <span class="n">entity_id</span><span class="p">,</span>
+            <span class="s2">&quot;public_key&quot;</span><span class="p">:</span> <span class="n">public_key</span>
+        <span class="p">}</span>
+        <span class="c1"># Serializza il contenuto per firmarlo</span>
+        <span class="n">info_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_cert</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+        <span class="n">signature</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">,</span> <span class="n">info_bytes</span><span class="p">)</span>
+        
+        <span class="n">certificate</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;entity_id&quot;</span><span class="p">:</span> <span class="n">entity_id</span><span class="p">,</span>
+            <span class="s2">&quot;public_key&quot;</span><span class="p">:</span> <span class="n">public_key</span><span class="p">,</span>
+            <span class="s2">&quot;signature&quot;</span><span class="p">:</span> <span class="n">signature</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">certificate</span></div>
+
+    
+
+
+<div class="viewcode-block" id="CertificationAuthority.verify_certificate">
+<a class="viewcode-back" href="../../Actors.html#Actors.CertificationAuthority.CertificationAuthority.verify_certificate">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">certificate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verifica che un certificato sia stato emesso dalla CA.</span>
+<span class="sd">        Restituisce True se valido, False altrimenti.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;entity_id&quot;</span><span class="p">:</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;entity_id&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;public_key&quot;</span><span class="p">:</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;public_key&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="n">info_bytes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_cert</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">verify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">public_key</span><span class="p">,</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;signature&quot;</span><span class="p">],</span> <span class="n">info_bytes</span><span class="p">)</span></div>
+
+    
+
+
+<div class="viewcode-block" id="CertificationAuthority.extract_public_key">
+<a class="viewcode-back" href="../../Actors.html#Actors.CertificationAuthority.CertificationAuthority.extract_public_key">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_public_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">certificate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estrae la chiave pubblica da un certificato verificato.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_certificate</span><span class="p">(</span><span class="n">certificate</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Certificato non valido&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">certificate</span><span class="p">[</span><span class="s2">&quot;public_key&quot;</span><span class="p">]</span></div>
+
+    
+
+
+<div class="viewcode-block" id="CertificationAuthority.publish_certificate">
+<a class="viewcode-back" href="../../Actors.html#Actors.CertificationAuthority.CertificationAuthority.publish_certificate">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">certificate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pubblica il certificato di un attore istituzionale</span>
+<span class="sd">        nel registro pubblico della PKI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_certificate</span><span class="p">(</span><span class="n">certificate</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Certificato non valido&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">certificate</span></div>
+
+    
+
+
+<div class="viewcode-block" id="CertificationAuthority.get_certificate">
+<a class="viewcode-back" href="../../Actors.html#Actors.CertificationAuthority.CertificationAuthority.get_certificate">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_certificate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recupera il certificato di un attore istituzionale</span>
+<span class="sd">        dalla PKI. Solleva un&#39;eccezione se non trovato.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Certificato per </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2"> non trovato&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span></div>
+
+    
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_cert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cert_content</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Serializza il contenuto del certificato in bytes</span>
+<span class="sd">        per la firma/verifica.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pk_bytes</span> <span class="o">=</span> <span class="n">cert_content</span><span class="p">[</span><span class="s2">&quot;public_key&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">public_bytes</span><span class="p">(</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">serialization</span><span class="o">.</span><span class="n">Encoding</span><span class="o">.</span><span class="n">PEM</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="n">serialization</span><span class="o">.</span><span class="n">PublicFormat</span><span class="o">.</span><span class="n">SubjectPublicKeyInfo</span>
+        <span class="p">)</span>
+        <span class="n">entity_bytes</span> <span class="o">=</span> <span class="n">cert_content</span><span class="p">[</span><span class="s2">&quot;entity_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">entity_bytes</span> <span class="o">+</span> <span class="n">pk_bytes</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

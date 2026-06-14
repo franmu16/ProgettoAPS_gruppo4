@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actors.Voter &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=945aedf1"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/translations.js?v=45930005"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="../../genindex.html" />
+    <link rel="search" title="Cerca" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Codice del modulo</a></li>
+      <li class="breadcrumb-item active">Actors.Voter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Codice sorgente per Actors.Voter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Elettore (E), Fasi 1, 4 e 6.</span>
+
+<span class="sd">Responsabilità:</span>
+<span class="sd">    Fase 1 : risponde alla challenge FIDO2 del SA;</span>
+<span class="sd">                         decifra auth_proof (RSA-OAEP) con sk_E.</span>
+<span class="sd">    Fase 2 : cifra la richiesta (RSA-OAEP) per l&#39;AE;</span>
+<span class="sd">                         decifra e verifica token e K_pub_cifr (RSA-OAEP).</span>
+<span class="sd">    Fase 3 : prepara la scheda (cifra voto);</span>
+<span class="sd">                         cifra il payload (RSA-OAEP) con pk_UE.</span>
+<span class="sd">    Fase 4 : conserva e valida la ricevuta firmata dall&#39;UE.</span>
+<span class="sd">    Fase 6 : verifica Merkle Proof e ricevuta (verifica individuale).</span>
+
+<span class="sd">Nota FIDO2:</span>
+<span class="sd">  Il protocollo FIDO2 reale richiede un authenticator hardware. In questa</span>
+<span class="sd">  simulazione FIDO2 è emulato con RSA challenge/response usando una coppia</span>
+<span class="sd">  di chiavi dedicata (pk_fido, sk_fido) separata dalla coppia RSA principale</span>
+<span class="sd">  (pk, sk).</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.hazmat.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">serialization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.crypto</span><span class="w"> </span><span class="kn">import</span> <span class="n">encrypt_OAEP</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">verify</span><span class="p">,</span> <span class="n">hash_SHA256</span><span class="p">,</span> <span class="n">encrypt_chunked</span><span class="p">,</span> <span class="n">decrypt_chunked</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.MerkleTree</span><span class="w"> </span><span class="kn">import</span> <span class="n">verify_merkle_proof</span>
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Voter</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter">[documenti]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Voter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rappresenta un elettore.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voter_id</span><span class="p">,</span> <span class="n">sk</span><span class="p">,</span> <span class="n">pk</span><span class="p">,</span> <span class="n">sk_fido</span><span class="p">,</span> <span class="n">pk_fido</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Argomenti:</span>
+<span class="sd">            voter_id      identificativo anagrafico dell&#39;elettore</span>
+<span class="sd">            sk / pk       coppia RSA principale (protocollo)</span>
+<span class="sd">            sk_fido / pk_fido   coppia RSA dedicata FIDO2, separata dalla coppia principale</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">voter_id</span> <span class="o">=</span> <span class="n">voter_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sk</span>       <span class="o">=</span> <span class="n">sk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pk</span>       <span class="o">=</span> <span class="n">pk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sk_fido</span>  <span class="o">=</span> <span class="n">sk_fido</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pk_fido</span>  <span class="o">=</span> <span class="n">pk_fido</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_auth_proof</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># payload (voter_id||r||σ) dal SA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_token_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_token</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pk_enc</span> <span class="o">=</span> <span class="kc">None</span>   <span class="c1"># K_pub_cifr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nonce</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cv</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_receipt</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 1 – Risposta alla challenge FIDO2</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter.respond_to_challenge">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.respond_to_challenge">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">respond_to_challenge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 1 lato Elettore (WP2 2.12.2, passo 3):</span>
+
+<span class="sd">        Firma la challenge r con sk_fido (simula la verifica biometrica/PIN).</span>
+<span class="sd">        Restituisce σ_auth = _pss_sign(sk_fido, r).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk_fido</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Voter.receive_auth_proof">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.receive_auth_proof">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_auth_proof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auth_proof_encrypted</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 1 lato Elettore (WP2 2.12.2, passo 5):</span>
+
+<span class="sd">        Decifra auth_proof_encrypted (RSA-OAEP con pk_E dal SA)</span>
+<span class="sd">        e conserva il payload grezzo (voter_id || r || σ_auth_proof)</span>
+<span class="sd">        per presentarlo all&#39;AE in Fase 2.</span>
+
+<span class="sd">        Restituisce True se la decifratura ha successo.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_auth_proof</span> <span class="o">=</span> <span class="n">decrypt_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk</span><span class="p">,</span> <span class="n">auth_proof_encrypted</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 2 – Richiesta abilitazione</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter.prepare_authorization_request">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.prepare_authorization_request">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_authorization_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pk_ae</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 2 lato Elettore (WP2 2.12.3, passo 2):</span>
+
+<span class="sd">        Cifra il payload auth_proof grezzo con pk_AE.</span>
+<span class="sd">        L&#39;AE lo decifrerà e verificherà la firma del SA.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auth_proof</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;auth_proof non disponibile: eseguire prima la Fase 1.&quot;</span><span class="p">)</span>
+        <span class="c1"># auth_proof = entity_id || challenge(32B) || sigma(256B) &gt; 190B</span>
+        <span class="k">return</span> <span class="n">encrypt_chunked</span><span class="p">(</span><span class="n">pk_ae</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auth_proof</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Voter.receive_ae_response">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.receive_ae_response">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_ae_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">pk_ae</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 2 lato Elettore (WP2 2.12.3, passi 4-5):</span>
+
+<span class="sd">        Pacchetto AE:</span>
+<span class="sd">            4B len(encrypted_token) | encrypted_token | 4B len(encrypted_kpub) | encrypted_kpub</span>
+
+<span class="sd">        Dove:</span>
+<span class="sd">            encrypted_token decifra in: token_id(32B) | sigma_token(256B)</span>
+<span class="sd">            encrypted_kpub  decifra in: K_pub_cifr PEM | sigma_kpub(256B)</span>
+
+<span class="sd">        Verifica entrambe le firme con verify.</span>
+<span class="sd">        Restituisce True se tutte le verifiche passano.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#4B len(token) | token | 4B len(kpub) | kpub</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">len_token</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="n">encrypted_token</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">len_token</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="n">len_token</span>
+
+        <span class="n">len_kpub</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="n">encrypted_kpub</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">len_kpub</span><span class="p">]</span>
+
+        <span class="c1"># Decifratura token tramite chunking</span>
+        <span class="c1"># AE invia: token_id(32B) || sigma_token(256B)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">token_payload</span> <span class="o">=</span> <span class="n">decrypt_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk</span><span class="p">,</span> <span class="n">encrypted_token</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Convenzione: token_id = primi 32 bytes, sigma = ultimi 256 bytes</span>
+        <span class="n">token_id</span>  <span class="o">=</span> <span class="n">token_payload</span><span class="p">[:</span><span class="mi">32</span><span class="p">]</span>
+        <span class="n">sigma_tok</span> <span class="o">=</span> <span class="n">token_payload</span><span class="p">[</span><span class="mi">32</span><span class="p">:]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_ae</span><span class="p">,</span> <span class="n">sigma_tok</span><span class="p">,</span> <span class="n">token_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Decifratura K_pub_cifr tramite chunking</span>
+        <span class="c1"># AE invia: K_pub_cifr || sigma_kpub(256B)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">kpub_payload</span> <span class="o">=</span> <span class="n">decrypt_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk</span><span class="p">,</span> <span class="n">encrypted_kpub</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Convenzione: sigma = ultimi 256 bytes, K_pub_cifr = tutto il resto</span>
+        <span class="n">sigma_kpub</span> <span class="o">=</span> <span class="n">kpub_payload</span><span class="p">[</span><span class="o">-</span><span class="mi">256</span><span class="p">:]</span>
+        <span class="n">pk_enc</span>     <span class="o">=</span> <span class="n">kpub_payload</span><span class="p">[:</span><span class="o">-</span><span class="mi">256</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_ae</span><span class="p">,</span> <span class="n">sigma_kpub</span><span class="p">,</span> <span class="n">pk_enc</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_token_id</span>    <span class="o">=</span> <span class="n">token_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_token</span> <span class="o">=</span> <span class="n">sigma_tok</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pk_enc</span>      <span class="o">=</span> <span class="n">serialization</span><span class="o">.</span><span class="n">load_pem_public_key</span><span class="p">(</span><span class="n">pk_enc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 3 – Preparazione della scheda</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter.prepare_ballot">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.prepare_ballot">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_ballot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preference</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 3 lato Elettore (WP2 2.12.4):</span>
+
+<span class="sd">          1. cv = encrypt_OAEP(K_pub_cifr, v)        [voto cifrato]</span>
+<span class="sd">          2. nonce ← os.urandom(32)                   [anti-replay]</span>
+<span class="sd">          3. ballot_id = SHA-256(token_id || cv || nonce)</span>
+<span class="sd">          4. payload = 4B len_cv | cv</span>
+<span class="sd">                     | 2B len_tok | token_id</span>
+<span class="sd">                     | 4B len_sig | σ_token</span>
+<span class="sd">                     | 32B nonce</span>
+<span class="sd">          5. c_trans = encrypt_OAEP(pk_UE, payload)</span>
+
+<span class="sd">        Preferenza vuota (&quot;&quot;) codifica la scheda bianca (⊥ = 0x00).</span>
+<span class="sd">        Restituisce c_trans da trasmettere all&#39;UE.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pk_enc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Token o K_pub_cifr non disponibili.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Passo 2 – cifratura del voto con K_pub_cifr (RSA-OAEP)</span>
+        <span class="n">vote_bytes</span> <span class="o">=</span> <span class="n">preference</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span> <span class="k">if</span> <span class="n">preference</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">encrypt_OAEP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pk_enc</span><span class="p">,</span> <span class="n">vote_bytes</span><span class="p">)</span>
+
+        <span class="c1"># Passo 3 – nonce casuale anti-replay</span>
+        <span class="n">nonce</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+
+        <span class="c1"># Passo 4 – ballot_id = SHA-256(token_id || cv || nonce)</span>
+        <span class="n">ballot_id</span> <span class="o">=</span> <span class="n">hash_SHA256</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_token_id</span> <span class="o">+</span> <span class="n">cv</span> <span class="o">+</span> <span class="n">nonce</span><span class="p">)</span>
+
+        <span class="c1"># Passo 5 – costruzione del payload della scheda</span>
+        <span class="n">tok</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_id</span>
+        <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_token</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">cv</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>  <span class="o">+</span> <span class="n">cv</span> <span class="o">+</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">tok</span>
+            <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">sig</span>
+            <span class="o">+</span> <span class="n">nonce</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Passo 5 – cifratura del payload con pk_UE tramite chunking</span>
+        <span class="c1"># (cv + token + sigma + nonce può superare 190B)</span>
+        <span class="n">c_trans</span> <span class="o">=</span> <span class="n">encrypt_chunked</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+        <span class="c1"># Conserva per Fase 4 e 6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span> <span class="o">=</span> <span class="n">ballot_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nonce</span>     <span class="o">=</span> <span class="n">nonce</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cv</span>        <span class="o">=</span> <span class="n">cv</span>
+
+        <span class="k">return</span> <span class="n">c_trans</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 4 – Validazione ricevuta</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter.validate_receipt">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.validate_receipt">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validate_receipt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receipt</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 4 lato Elettore (WP2 2.12.5):</span>
+
+<span class="sd">        Verifica receipt = _sign(sk_UE, ballot_id || nonce).</span>
+<span class="sd">        Conserva la ricevuta se la verifica ha successo.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nonce</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">,</span> <span class="n">receipt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nonce</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_receipt</span> <span class="o">=</span> <span class="n">receipt</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 6 – Verifica individuale</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter.verify_inclusion">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.verify_inclusion">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_inclusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proof</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]],</span> <span class="n">root</span><span class="p">,</span> <span class="n">sigma_root</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 6 lato Elettore (WP2 2.12.7):</span>
+
+<span class="sd">          i.   Verifica σ_root = _sign(sk_UE, root) con pk_UE.</span>
+<span class="sd">          ii.  Calcola la foglia L = ballot_id (calcolata in Fase 3).</span>
+<span class="sd">          iii. Verifica Merkle Proof: verify_merkle_proof() da merkle.py.</span>
+<span class="sd">          iv.  Verifica ricevuta: _sign(sk_UE, ballot_id || nonce).</span>
+
+<span class="sd">        Restituisce True solo se tutti e quattro i controlli passano.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># i. Verifica firma sulla Merkle Root</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">,</span> <span class="n">sigma_root</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># ii-iii. Verifica Merkle Proof (logica da merkle.py)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify_merkle_proof</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span><span class="p">,</span> <span class="n">proof</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># iv. Verifica ricevuta</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receipt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_ue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_receipt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nonce</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Properties</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Voter.token_id">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.token_id">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">token_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_token_id</span></div>
+
+
+<div class="viewcode-block" id="Voter.ballot_id">
+<a class="viewcode-back" href="../../Actors.html#Actors.Voter.Voter.ballot_id">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ballot_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ballot_id</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

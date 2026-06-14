@@ -32,8 +32,8 @@ import random
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
-from crypto import decrypt_OAEP, sign, verify, hash_SHA256, decrypt_chunked
-from MerkleTree import build_merkle_tree, generate_merkle_proof
+from Utils.crypto import decrypt_OAEP, sign, verify, hash_SHA256, decrypt_chunked
+from Utils.MerkleTree import build_merkle_tree, generate_merkle_proof
 
 
 class ElectronicBallotBox:

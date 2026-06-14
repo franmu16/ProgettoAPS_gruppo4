@@ -15,7 +15,7 @@ Interazioni:
 """
 
 import os
-from crypto import generate_keys, sign, verify, encrypt_chunked
+from Utils.crypto import generate_keys, sign, verify, encrypt_chunked
 
 
 class AuthenticationSystem:

@@ -1,0 +1,792 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actors package &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=945aedf1"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=45930005"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="genindex.html" />
+    <link rel="search" title="Cerca" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Actors package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-Actors.AuthenticationSystem">Actors.AuthenticationSystem module</a><ul>
+<li><a class="reference internal" href="#Actors.AuthenticationSystem.AuthenticationSystem"><code class="docutils literal notranslate"><span class="pre">AuthenticationSystem</span></code></a><ul>
+<li><a class="reference internal" href="#Actors.AuthenticationSystem.AuthenticationSystem.complete_registration"><code class="docutils literal notranslate"><span class="pre">AuthenticationSystem.complete_registration()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.AuthenticationSystem.AuthenticationSystem.generate_auth_challenge"><code class="docutils literal notranslate"><span class="pre">AuthenticationSystem.generate_auth_challenge()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.AuthenticationSystem.AuthenticationSystem.generate_registration_challenge"><code class="docutils literal notranslate"><span class="pre">AuthenticationSystem.generate_registration_challenge()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.AuthenticationSystem.AuthenticationSystem.release_auth_proof"><code class="docutils literal notranslate"><span class="pre">AuthenticationSystem.release_auth_proof()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.AuthenticationSystem.AuthenticationSystem.verify_authentication"><code class="docutils literal notranslate"><span class="pre">AuthenticationSystem.verify_authentication()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Actors.CertificationAuthority">Actors.CertificationAuthority module</a><ul>
+<li><a class="reference internal" href="#Actors.CertificationAuthority.CertificationAuthority"><code class="docutils literal notranslate"><span class="pre">CertificationAuthority</span></code></a><ul>
+<li><a class="reference internal" href="#Actors.CertificationAuthority.CertificationAuthority.extract_public_key"><code class="docutils literal notranslate"><span class="pre">CertificationAuthority.extract_public_key()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.CertificationAuthority.CertificationAuthority.generate_certificate"><code class="docutils literal notranslate"><span class="pre">CertificationAuthority.generate_certificate()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.CertificationAuthority.CertificationAuthority.get_certificate"><code class="docutils literal notranslate"><span class="pre">CertificationAuthority.get_certificate()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.CertificationAuthority.CertificationAuthority.publish_certificate"><code class="docutils literal notranslate"><span class="pre">CertificationAuthority.publish_certificate()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.CertificationAuthority.CertificationAuthority.verify_certificate"><code class="docutils literal notranslate"><span class="pre">CertificationAuthority.verify_certificate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Actors.Director">Actors.Director module</a><ul>
+<li><a class="reference internal" href="#Actors.Director.Director"><code class="docutils literal notranslate"><span class="pre">Director</span></code></a><ul>
+<li><a class="reference internal" href="#Actors.Director.Director.configure_election"><code class="docutils literal notranslate"><span class="pre">Director.configure_election()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Actors.ElectionAuthority">Actors.ElectionAuthority module</a><ul>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority</span></code></a><ul>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority.add_voter"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority.add_voter()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority.receive_enablement_request"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority.receive_enablement_request()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority.receive_params"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority.receive_params()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority.release_encryption_key"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority.release_encryption_key()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority.release_token"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority.release_token()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectionAuthority.ElectionAuthority.send_private_key"><code class="docutils literal notranslate"><span class="pre">ElectionAuthority.send_private_key()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Actors.ElectronicBallotBox">Actors.ElectronicBallotBox module</a><ul>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox</span></code></a><ul>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.close_and_tally"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.close_and_tally()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_proof"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.get_merkle_proof()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_root"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.get_merkle_root()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_num_valid_ballots"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.get_num_valid_ballots()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_sigma_root"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.get_sigma_root()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_tally"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.get_tally()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.receive_ballot"><code class="docutils literal notranslate"><span class="pre">ElectronicBallotBox.receive_ballot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Actors.Voter">Actors.Voter module</a><ul>
+<li><a class="reference internal" href="#Actors.Voter.Voter"><code class="docutils literal notranslate"><span class="pre">Voter</span></code></a><ul>
+<li><a class="reference internal" href="#Actors.Voter.Voter.ballot_id"><code class="docutils literal notranslate"><span class="pre">Voter.ballot_id()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.prepare_authorization_request"><code class="docutils literal notranslate"><span class="pre">Voter.prepare_authorization_request()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.prepare_ballot"><code class="docutils literal notranslate"><span class="pre">Voter.prepare_ballot()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.receive_ae_response"><code class="docutils literal notranslate"><span class="pre">Voter.receive_ae_response()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.receive_auth_proof"><code class="docutils literal notranslate"><span class="pre">Voter.receive_auth_proof()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.respond_to_challenge"><code class="docutils literal notranslate"><span class="pre">Voter.respond_to_challenge()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.token_id"><code class="docutils literal notranslate"><span class="pre">Voter.token_id()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.validate_receipt"><code class="docutils literal notranslate"><span class="pre">Voter.validate_receipt()</span></code></a></li>
+<li><a class="reference internal" href="#Actors.Voter.Voter.verify_inclusion"><code class="docutils literal notranslate"><span class="pre">Voter.verify_inclusion()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-Actors">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Actors package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Actors.rst.txt" rel="nofollow"> Visualizza sorgente pagina</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="actors-package">
+<h1>Actors package<a class="headerlink" href="#actors-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Actors.AuthenticationSystem">
+<span id="actors-authenticationsystem-module"></span><h2>Actors.AuthenticationSystem module<a class="headerlink" href="#module-Actors.AuthenticationSystem" title="Link to this heading"></a></h2>
+<p>Modulo che implementa il Sistema di Autenticazione (SA).</p>
+<dl class="simple">
+<dt>Responsabilità:</dt><dd><ul class="simple">
+<li><p>Registrazione degli elettori tramite FIDO2 (simulato con RSA-PSS)</p></li>
+<li><p>Autenticazione degli elettori tramite challenge/response</p></li>
+<li><p>Rilascio della prova di autenticazione firmata e cifrata</p></li>
+</ul>
+</dd>
+</dl>
+<p>Nota: FIDO2 è simulato tramite challenge/response RSA-PSS.
+In un’implementazione reale si userebbe la libreria python-fido2
+con hardware dedicato (es. YubiKey, Windows Hello).</p>
+<dl class="simple">
+<dt>Interazioni:</dt><dd><ul class="simple">
+<li><p>Fase 1: autentica l’elettore e rilascia auth_proof</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Actors.AuthenticationSystem.AuthenticationSystem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Actors.AuthenticationSystem.</span></span><span class="sig-name descname"><span class="pre">AuthenticationSystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ca</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/AuthenticationSystem.html#AuthenticationSystem"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.AuthenticationSystem.AuthenticationSystem" title="Link to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Basi: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.AuthenticationSystem.AuthenticationSystem.complete_registration">
+<span class="sig-name descname"><span class="pre">complete_registration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_fido</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_reg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/AuthenticationSystem.html#AuthenticationSystem.complete_registration"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.AuthenticationSystem.AuthenticationSystem.complete_registration" title="Link to this definition"></a></dt>
+<dd><p>Fase di registrazione FIDO2 - passo 2.
+Verifica la firma sulla challenge e registra la chiave FIDO
+dell’elettore nel proprio registro.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity_id</strong> – identificativo dell’elettore</p></li>
+<li><p><strong>pk_fido</strong> – chiave pubblica FIDO2 dell’elettore</p></li>
+<li><p><strong>sigma_reg</strong> – firma della challenge con sk_FIDO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>True se la registrazione è andata a buon fine</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – se la challenge non esiste o la firma non è valida</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.AuthenticationSystem.AuthenticationSystem.generate_auth_challenge">
+<span class="sig-name descname"><span class="pre">generate_auth_challenge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/AuthenticationSystem.html#AuthenticationSystem.generate_auth_challenge"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.AuthenticationSystem.AuthenticationSystem.generate_auth_challenge" title="Link to this definition"></a></dt>
+<dd><p>Fase 1 - passo 2.
+Verifica che l’elettore sia registrato e genera una
+challenge casuale monouso.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>entity_id</strong> – identificativo dell’elettore</p>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>challenge casuale di 256 bit (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – se l’elettore non è registrato</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.AuthenticationSystem.AuthenticationSystem.generate_registration_challenge">
+<span class="sig-name descname"><span class="pre">generate_registration_challenge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/AuthenticationSystem.html#AuthenticationSystem.generate_registration_challenge"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.AuthenticationSystem.AuthenticationSystem.generate_registration_challenge" title="Link to this definition"></a></dt>
+<dd><p>Fase di registrazione FIDO2 - passo 1.
+Genera una challenge casuale monouso da inviare all’elettore.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>entity_id</strong> – identificativo dell’elettore</p>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>challenge casuale di 256 bit (bytes)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.AuthenticationSystem.AuthenticationSystem.release_auth_proof">
+<span class="sig-name descname"><span class="pre">release_auth_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">challenge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_E</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/AuthenticationSystem.html#AuthenticationSystem.release_auth_proof"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.AuthenticationSystem.AuthenticationSystem.release_auth_proof" title="Link to this definition"></a></dt>
+<dd><p>Fase 1 - passo 5.
+Rilascia la prova di autenticazione firmata con sk_SA
+e cifrata con pk_E.</p>
+<p>Il messaggio firmato è: entity_id || challenge
+Il messaggio cifrato è: entity_id || challenge || sigma_auth_proof</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity_id</strong> – identificativo dell’elettore autenticato</p></li>
+<li><p><strong>challenge</strong> – challenge usata durante l’autenticazione</p></li>
+<li><p><strong>pk_E</strong> – chiave pubblica RSA dell’elettore (per cifrare)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>auth_proof cifrata con pk_E (bytes)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.AuthenticationSystem.AuthenticationSystem.verify_authentication">
+<span class="sig-name descname"><span class="pre">verify_authentication</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_E</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/AuthenticationSystem.html#AuthenticationSystem.verify_authentication"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.AuthenticationSystem.AuthenticationSystem.verify_authentication" title="Link to this definition"></a></dt>
+<dd><p>Fase 1 - passi 3 e 4.
+Verifica il certificato dell’elettore tramite la CA e
+la firma FIDO2 sulla challenge.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity_id</strong> – identificativo dell’elettore</p></li>
+<li><p><strong>sigma_auth</strong> – firma della challenge con sk_FIDO</p></li>
+<li><p><strong>cert_E</strong> – certificato digitale dell’elettore</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>True se l’autenticazione è valida</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – se il certificato o la firma non sono validi</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Actors.CertificationAuthority">
+<span id="actors-certificationauthority-module"></span><h2>Actors.CertificationAuthority module<a class="headerlink" href="#module-Actors.CertificationAuthority" title="Link to this heading"></a></h2>
+<p>Modulo che implementa la Certification Authority (CA).</p>
+<p>È responsabile dell’emissione e della verifica dei certificati digitali
+per tutti gli attori del sistema.</p>
+<dl class="simple">
+<dt>Responsabilità:</dt><dd><ul class="simple">
+<li><p>Generazione e gestione della propria coppia di chiavi RSA</p></li>
+<li><p>Emissione di certificati digitali X.509 (semplificati) per gli attori</p></li>
+<li><p>Verifica dell’autenticità dei certificati tramite la propria firma</p></li>
+<li><p>Gestione del registro pubblico dei certificati degli attori istituzionali
+(D, SA, AE, UE) — i certificati degli elettori non sono pubblicati
+per preservare il requisito di pseudoanonimato.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Actors.CertificationAuthority.CertificationAuthority">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Actors.CertificationAuthority.</span></span><span class="sig-name descname"><span class="pre">CertificationAuthority</span></span><a class="reference internal" href="_modules/Actors/CertificationAuthority.html#CertificationAuthority"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.CertificationAuthority.CertificationAuthority" title="Link to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Basi: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.CertificationAuthority.CertificationAuthority.extract_public_key">
+<span class="sig-name descname"><span class="pre">extract_public_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/CertificationAuthority.html#CertificationAuthority.extract_public_key"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.CertificationAuthority.CertificationAuthority.extract_public_key" title="Link to this definition"></a></dt>
+<dd><p>Estrae la chiave pubblica da un certificato verificato.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.CertificationAuthority.CertificationAuthority.generate_certificate">
+<span class="sig-name descname"><span class="pre">generate_certificate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">public_key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/CertificationAuthority.html#CertificationAuthority.generate_certificate"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.CertificationAuthority.CertificationAuthority.generate_certificate" title="Link to this definition"></a></dt>
+<dd><p>Emette un certificato per un’entità.
+Il certificato è un dizionario firmato dalla CA.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.CertificationAuthority.CertificationAuthority.get_certificate">
+<span class="sig-name descname"><span class="pre">get_certificate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/CertificationAuthority.html#CertificationAuthority.get_certificate"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.CertificationAuthority.CertificationAuthority.get_certificate" title="Link to this definition"></a></dt>
+<dd><p>Recupera il certificato di un attore istituzionale
+dalla PKI. Solleva un’eccezione se non trovato.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.CertificationAuthority.CertificationAuthority.publish_certificate">
+<span class="sig-name descname"><span class="pre">publish_certificate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/CertificationAuthority.html#CertificationAuthority.publish_certificate"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.CertificationAuthority.CertificationAuthority.publish_certificate" title="Link to this definition"></a></dt>
+<dd><p>Pubblica il certificato di un attore istituzionale
+nel registro pubblico della PKI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.CertificationAuthority.CertificationAuthority.verify_certificate">
+<span class="sig-name descname"><span class="pre">verify_certificate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">certificate</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/CertificationAuthority.html#CertificationAuthority.verify_certificate"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.CertificationAuthority.CertificationAuthority.verify_certificate" title="Link to this definition"></a></dt>
+<dd><p>Verifica che un certificato sia stato emesso dalla CA.
+Restituisce True se valido, False altrimenti.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Actors.Director">
+<span id="actors-director-module"></span><h2>Actors.Director module<a class="headerlink" href="#module-Actors.Director" title="Link to this heading"></a></h2>
+<p>Direttore Elettorale (D), Fase 0: Configurazione dell’elezione.</p>
+<dl class="simple">
+<dt>Responsabilità (WP2 2.12.1):</dt><dd><ol class="arabic simple">
+<li><p>Costruisce il messaggio M con i parametri elettorali.</p></li>
+<li><p>Firma M con sk_D tramite RSA-PSS.</p></li>
+<li><p>Cifra M e σ_M con pk_AE tramite RSA-OAEP con chunking.</p></li>
+<li><p>Restituisce il pacchetto da trasmettere all’AE.</p></li>
+</ol>
+</dd>
+<dt>Schema del pacchetto trasmesso:</dt><dd><p>4B len(M_encrypted) | M_encrypted | sig_encrypted</p>
+</dd>
+<dt>dove:</dt><dd><p>M_encrypted   = _encrypt_chunked(pk_AE, M_bytes)
+sig_encrypted = _encrypt_chunked(pk_AE, σ_M)
+σ_M           = _sign(sk_D, M_bytes)</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Actors.Director.Director">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Actors.Director.</span></span><span class="sig-name descname"><span class="pre">Director</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Director.html#Director"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Director.Director" title="Link to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Basi: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</div></blockquote>
+<p>Direttore Elettorale.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Director.Director.configure_election">
+<span class="sig-name descname"><span class="pre">configure_election</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pk_ae</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authorized_offices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_open</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration_seconds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Director.html#Director.configure_election"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Director.Director.configure_election" title="Link to this definition"></a></dt>
+<dd><p>Esegue la Fase 0 lato Direttore.</p>
+<dl class="simple">
+<dt>Argomenti:</dt><dd><p>pk_ae              – chiave pubblica AE (estratta dal certificato PKI)
+candidates         – list[str] dei candidati ammessi C
+authorized_offices – list[str] con sedi/uffici autorizzati al voto
+t_open             – timestamp apertura urne (default: adesso)
+duration_seconds   – durata finestra di voto in secondi</p>
+</dd>
+<dt>Passi:</dt><dd><ol class="arabic simple">
+<li><p>Costruisce M = {T_open, T_close, candidates, authorized_offices}</p></li>
+<li><p>σ_M = sign(sk_D, M)</p></li>
+<li><p>M_encrypted = encrypt_OAEP(pk_ae, M_bytes+σ_M)</p></li>
+<li><p>Pacchetto: 4B len(M_encrypted) | M_encrypted | σ_M</p></li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Actors.ElectionAuthority">
+<span id="actors-electionauthority-module"></span><h2>Actors.ElectionAuthority module<a class="headerlink" href="#module-Actors.ElectionAuthority" title="Link to this heading"></a></h2>
+<p>Modulo che implementa l’Autorità Elettorale (AE).</p>
+<dl class="simple">
+<dt>Responsabilità:</dt><dd><ul class="simple">
+<li><p>Ricezione e validazione dei parametri elettorali dal Direttore (Fase 0)</p></li>
+<li><p>Generazione della coppia di chiavi per la cifratura dei voti (Fase 0)</p></li>
+<li><p>Verifica del diritto di voto e rilascio del token di abilitazione (Fase 2)</p></li>
+<li><p>Trasmissione di K_priv_cifr all’UE dopo la chiusura delle urne (Fase 5)</p></li>
+</ul>
+</dd>
+<dt>Interazioni:</dt><dd><ul class="simple">
+<li><p>Fase 0: riceve parametri dal Direttore</p></li>
+<li><p>Fase 2: riceve richiesta di abilitazione dall’elettore</p></li>
+<li><p>Fase 5: trasmette K_priv_cifr all’UE</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Actors.ElectionAuthority.</span></span><span class="sig-name descname"><span class="pre">ElectionAuthority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ca</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority" title="Link to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Basi: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority.add_voter">
+<span class="sig-name descname"><span class="pre">add_voter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority.add_voter"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority.add_voter" title="Link to this definition"></a></dt>
+<dd><p>Aggiunge un elettore all’elettorato legittimo L.
+Usato in fase di setup della simulazione.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>entity_id</strong> – identificativo dell’elettore da aggiungere</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority.receive_enablement_request">
+<span class="sig-name descname"><span class="pre">receive_enablement_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encrypted_auth_proof</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_SA</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority.receive_enablement_request"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority.receive_enablement_request" title="Link to this definition"></a></dt>
+<dd><p>Fase 2 - passi 2 e 3.
+Decifra la prova di autenticazione, ne verifica la firma
+tramite pk_SA e controlla che l’elettore abbia diritto al voto.</p>
+<p>Il payload decifrato contiene: entity_id || challenge || sigma_auth_proof</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encrypted_auth_proof</strong> – Enc_pkAE(entity_id || challenge || sigma)</p></li>
+<li><p><strong>cert_E</strong> – certificato digitale dell’elettore</p></li>
+<li><p><strong>pk_SA</strong> – chiave pubblica del SA (recuperata dalla PKI)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>entity_id dell’elettore se abilitato</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – se la verifica fallisce</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority.receive_params">
+<span class="sig-name descname"><span class="pre">receive_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encrypted_payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority.receive_params"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority.receive_params" title="Link to this definition"></a></dt>
+<dd><p>Fase 0.
+Decifra il payload ricevuto dal Direttore, verifica la firma
+e inizializza la sessione elettorale.</p>
+<p>Il payload cifrato contiene: M || sigma_M
+dove M = (t_open || t_close || candidati || sedi)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encrypted_payload</strong> – Enc_pkAE(M || sigma_M) (bytes)</p></li>
+<li><p><strong>cert_dir</strong> – certificato digitale del Direttore</p></li>
+</ul>
+</dd>
+<dt class="field-even">Solleva<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – se il certificato o la firma non sono validi</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority.release_encryption_key">
+<span class="sig-name descname"><span class="pre">release_encryption_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pk_E</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority.release_encryption_key"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority.release_encryption_key" title="Link to this definition"></a></dt>
+<dd><p>Fase 2 - passo 5.
+Firma K_pub_cifr con sk_AE e la cifra con pk_E.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pk_E</strong> – chiave pubblica RSA dell’elettore</p>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enc_pkE(K_pub_cifr || sigma_Kpub) (bytes)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority.release_token">
+<span class="sig-name descname"><span class="pre">release_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_E</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority.release_token"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority.release_token" title="Link to this definition"></a></dt>
+<dd><p>Fase 2 - passo 4.
+Genera un token monouso, lo firma con sk_AE
+e lo cifra con pk_E.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity_id</strong> – identificativo dell’elettore abilitato</p></li>
+<li><p><strong>pk_E</strong> – chiave pubblica RSA dell’elettore</p></li>
+</ul>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enc_pkE(token_id || sigma_token) (bytes)</p>
+</dd>
+<dt class="field-odd">Solleva<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – se l’elettore non è abilitato</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectionAuthority.ElectionAuthority.send_private_key">
+<span class="sig-name descname"><span class="pre">send_private_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pk_UE</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectionAuthority.html#ElectionAuthority.send_private_key"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectionAuthority.ElectionAuthority.send_private_key" title="Link to this definition"></a></dt>
+<dd><p>Fase 5 - passo 1.
+Cifra K_priv_cifr con pk_UE e la trasmette all’UE
+dopo la chiusura delle urne T_close.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametri<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pk_UE</strong> – chiave pubblica RSA dell’UE</p>
+</dd>
+<dt class="field-even">Ritorna<span class="colon">:</span></dt>
+<dd class="field-even"><p>Enc_pkUE(K_priv_cifr) (bytes)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Actors.ElectronicBallotBox">
+<span id="actors-electronicballotbox-module"></span><h2>Actors.ElectronicBallotBox module<a class="headerlink" href="#module-Actors.ElectronicBallotBox" title="Link to this heading"></a></h2>
+<p>Urna Elettronica (UE), Fasi 4, 5 e supporto alla Fase 6.</p>
+<dl>
+<dt>Responsabilità (WP2 2.12.5, 2.12.6, 2.12.7):</dt><dd><dl class="simple">
+<dt>Fase 4<span class="classifier">riceve la scheda cifrata dall’elettore (c_trans);</span></dt><dd><p>decifra con sk_UE tramite RSA-OAEP;
+verifica nonce (anti-replay);
+verifica sigma_token tramite pk_AE (RSA-PSS);
+calcola ballot_id = H(token_id || cv || nonce);
+registra (token_id → {cv, ballot_id, nonce});
+emette ricevuta = sign(sk_UE, ballot_id || nonce).</p>
+</dd>
+<dt>Fase 5<span class="classifier">al sopraggiungere di T_close, riceve K_priv_cifr cifrata da AE;</span></dt><dd><p>decifra le schede con K_priv_cifr;
+valida le preferenze rispetto a C;
+costruisce il Merkle Tree (foglie = ballot_id, shuffle incluso);
+firma la radice con sk_UE;
+pubblica il verbale firmato;
+cancella K_priv_cifr dalla memoria.</p>
+</dd>
+</dl>
+<p>Fase 6 : genera Merkle Proof per un dato token_id (richiesta individuale).</p>
+</dd>
+<dt>Nota: tutti i messaggi hanno dimensione &lt; 150 byte.</dt><dd><p>Si usa direttamente RSA-OAEP senza chunking.
+La scheda bianca è rappresentata da cv = b»&quot; (WP2 2.12.4).</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Actors.ElectronicBallotBox.</span></span><span class="sig-name descname"><span class="pre">ElectronicBallotBox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sk_ue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_ue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_ae</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox" title="Link to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Basi: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</div></blockquote>
+<p>Urna Elettronica.</p>
+<p>Gestisce le Fasi 4, 5 e il supporto alla Fase 6 del protocollo WP2.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.close_and_tally">
+<span class="sig-name descname"><span class="pre">close_and_tally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k_priv_cifr_encrypted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.close_and_tally"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.close_and_tally" title="Link to this definition"></a></dt>
+<dd><p>Fase 5 lato UE (WP2 2.12.6).</p>
+<dl class="simple">
+<dt>Argomenti:</dt><dd><p>k_priv_cifr_encrypted – encrypt_OAEP(pk_UE, K_priv_cifr_pem)</p>
+</dd>
+<dt>Passi:</dt><dd><ol class="arabic simple">
+<li><p>Decifra K_priv_cifr con sk_UE (RSA-OAEP).</p></li>
+<li><p>Decifra ogni cv con K_priv_cifr e valida v ∈ C.</p></li>
+<li><p>Costruisce il Merkle Tree (foglie = ballot_id, shuffle preventivo).</p></li>
+<li><p>Firma la radice: sigma_root = sign(sk_UE, root).</p></li>
+<li><p>Compila e firma il verbale.</p></li>
+<li><p>Cancella K_priv_cifr dalla memoria.</p></li>
+</ol>
+</dd>
+</dl>
+<p>Restituisce: 4B len(verbale_json) | verbale_json | sigma_verbale</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_proof">
+<span class="sig-name descname"><span class="pre">get_merkle_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.get_merkle_proof"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_proof" title="Link to this definition"></a></dt>
+<dd><p>Fase 6 lato UE (WP2 2.12.7 passo ii).</p>
+<p>Restituisce (proof, root, sigma_root) se il token_id è registrato
+nel Merkle Tree, None altrimenti.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_root">
+<span class="sig-name descname"><span class="pre">get_merkle_root</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.get_merkle_root"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_root" title="Link to this definition"></a></dt>
+<dd><p>Restituisce la radice del Merkle Tree calcolata in Fase 5.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.get_num_valid_ballots">
+<span class="sig-name descname"><span class="pre">get_num_valid_ballots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.get_num_valid_ballots"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_num_valid_ballots" title="Link to this definition"></a></dt>
+<dd><p>Restituisce il numero di schede registrate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.get_sigma_root">
+<span class="sig-name descname"><span class="pre">get_sigma_root</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.get_sigma_root"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_sigma_root" title="Link to this definition"></a></dt>
+<dd><p>Restituisce la firma della radice Merkle calcolata in Fase 5.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.get_tally">
+<span class="sig-name descname"><span class="pre">get_tally</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.get_tally"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.get_tally" title="Link to this definition"></a></dt>
+<dd><p>Restituisce il conteggio dei voti calcolato in Fase 5.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.ElectronicBallotBox.ElectronicBallotBox.receive_ballot">
+<span class="sig-name descname"><span class="pre">receive_ballot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c_trans</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/Actors/ElectronicBallotBox.html#ElectronicBallotBox.receive_ballot"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.ElectronicBallotBox.ElectronicBallotBox.receive_ballot" title="Link to this definition"></a></dt>
+<dd><p>Fase 4 lato UE (WP2 2.12.5).</p>
+<p>Decifra c_trans con sk_UE (RSA-OAEP); verifica nonce e σ_token;
+calcola ballot_id; registra la scheda; restituisce la ricevuta firmata.</p>
+<dl class="simple">
+<dt>Formato payload (costruito da Voter.prepare_ballot):</dt><dd><p>4B len_cv | cv | 2B len_tok | token_id  | 4B len_sig | σ_token | 32B nonce</p>
+</dd>
+</dl>
+<p>Restituisce la ricevuta (bytes) se tutti i controlli passano, None altrimenti.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Actors.Voter">
+<span id="actors-voter-module"></span><h2>Actors.Voter module<a class="headerlink" href="#module-Actors.Voter" title="Link to this heading"></a></h2>
+<p>Elettore (E), Fasi 1, 4 e 6.</p>
+<dl>
+<dt>Responsabilità:</dt><dd><dl class="simple">
+<dt>Fase 1<span class="classifier">risponde alla challenge FIDO2 del SA;</span></dt><dd><p>decifra auth_proof (RSA-OAEP) con sk_E.</p>
+</dd>
+<dt>Fase 2<span class="classifier">cifra la richiesta (RSA-OAEP) per l’AE;</span></dt><dd><p>decifra e verifica token e K_pub_cifr (RSA-OAEP).</p>
+</dd>
+<dt>Fase 3<span class="classifier">prepara la scheda (cifra voto);</span></dt><dd><p>cifra il payload (RSA-OAEP) con pk_UE.</p>
+</dd>
+</dl>
+<p>Fase 4 : conserva e valida la ricevuta firmata dall’UE.
+Fase 6 : verifica Merkle Proof e ricevuta (verifica individuale).</p>
+</dd>
+<dt>Nota FIDO2:</dt><dd><p>Il protocollo FIDO2 reale richiede un authenticator hardware. In questa
+simulazione FIDO2 è emulato con RSA challenge/response usando una coppia
+di chiavi dedicata (pk_fido, sk_fido) separata dalla coppia RSA principale
+(pk, sk).</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="Actors.Voter.Voter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Actors.Voter.</span></span><span class="sig-name descname"><span class="pre">Voter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voter_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sk_fido</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_fido</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter" title="Link to this definition"></a></dt>
+<dd><blockquote>
+<div><p>Basi: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</div></blockquote>
+<p>Rappresenta un elettore.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.ballot_id">
+<span class="sig-name descname"><span class="pre">ballot_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.ballot_id"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.ballot_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.prepare_authorization_request">
+<span class="sig-name descname"><span class="pre">prepare_authorization_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pk_ae</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.prepare_authorization_request"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.prepare_authorization_request" title="Link to this definition"></a></dt>
+<dd><p>Fase 2 lato Elettore (WP2 2.12.3, passo 2):</p>
+<p>Cifra il payload auth_proof grezzo con pk_AE.
+L’AE lo decifrerà e verificherà la firma del SA.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.prepare_ballot">
+<span class="sig-name descname"><span class="pre">prepare_ballot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">preference</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_ue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.prepare_ballot"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.prepare_ballot" title="Link to this definition"></a></dt>
+<dd><p>Fase 3 lato Elettore (WP2 2.12.4):</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p>cv = encrypt_OAEP(K_pub_cifr, v)        [voto cifrato]</p></li>
+<li><p>nonce ← os.urandom(32)                   [anti-replay]</p></li>
+<li><p>ballot_id = SHA-256(token_id || cv || nonce)</p></li>
+<li><dl>
+<dt>payload = 4B len_cv | cv</dt><dd><div class="line-block">
+<div class="line">2B len_tok | token_id</div>
+<div class="line">4B len_sig | σ_token</div>
+<div class="line">32B nonce</div>
+</div>
+</dd>
+</dl>
+</li>
+<li><p>c_trans = encrypt_OAEP(pk_UE, payload)</p></li>
+</ol>
+</div></blockquote>
+<p>Preferenza vuota («») codifica la scheda bianca (⊥ = 0x00).
+Restituisce c_trans da trasmettere all’UE.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.receive_ae_response">
+<span class="sig-name descname"><span class="pre">receive_ae_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_ae</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.receive_ae_response"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.receive_ae_response" title="Link to this definition"></a></dt>
+<dd><p>Fase 2 lato Elettore (WP2 2.12.3, passi 4-5):</p>
+<dl class="simple">
+<dt>Pacchetto AE:</dt><dd><p>4B len(encrypted_token) | encrypted_token | 4B len(encrypted_kpub) | encrypted_kpub</p>
+</dd>
+<dt>Dove:</dt><dd><p>encrypted_token decifra in: token_id(32B) | sigma_token(256B)
+encrypted_kpub  decifra in: K_pub_cifr PEM | sigma_kpub(256B)</p>
+</dd>
+</dl>
+<p>Verifica entrambe le firme con verify.
+Restituisce True se tutte le verifiche passano.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.receive_auth_proof">
+<span class="sig-name descname"><span class="pre">receive_auth_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth_proof_encrypted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.receive_auth_proof"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.receive_auth_proof" title="Link to this definition"></a></dt>
+<dd><p>Fase 1 lato Elettore (WP2 2.12.2, passo 5):</p>
+<p>Decifra auth_proof_encrypted (RSA-OAEP con pk_E dal SA)
+e conserva il payload grezzo (voter_id || r || σ_auth_proof)
+per presentarlo all’AE in Fase 2.</p>
+<p>Restituisce True se la decifratura ha successo.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.respond_to_challenge">
+<span class="sig-name descname"><span class="pre">respond_to_challenge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.respond_to_challenge"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.respond_to_challenge" title="Link to this definition"></a></dt>
+<dd><p>Fase 1 lato Elettore (WP2 2.12.2, passo 3):</p>
+<p>Firma la challenge r con sk_fido (simula la verifica biometrica/PIN).
+Restituisce σ_auth = _pss_sign(sk_fido, r).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.token_id">
+<span class="sig-name descname"><span class="pre">token_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.token_id"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.token_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.validate_receipt">
+<span class="sig-name descname"><span class="pre">validate_receipt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">receipt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_ue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.validate_receipt"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.validate_receipt" title="Link to this definition"></a></dt>
+<dd><p>Fase 4 lato Elettore (WP2 2.12.5):</p>
+<p>Verifica receipt = _sign(sk_UE, ballot_id || nonce).
+Conserva la ricevuta se la verifica ha successo.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Actors.Voter.Voter.verify_inclusion">
+<span class="sig-name descname"><span class="pre">verify_inclusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proof</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk_ue</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Actors/Voter.html#Voter.verify_inclusion"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#Actors.Voter.Voter.verify_inclusion" title="Link to this definition"></a></dt>
+<dd><p>Fase 6 lato Elettore (WP2 2.12.7):</p>
+<blockquote>
+<div><ol class="lowerroman simple">
+<li><p>Verifica σ_root = _sign(sk_UE, root) con pk_UE.</p></li>
+<li><p>Calcola la foglia L = ballot_id (calcolata in Fase 3).</p></li>
+<li><p>Verifica Merkle Proof: verify_merkle_proof() da merkle.py.</p></li>
+<li><p>Verifica ricevuta: _sign(sk_UE, ballot_id || nonce).</p></li>
+</ol>
+</div></blockquote>
+<p>Restituisce True solo se tutti e quattro i controlli passano.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-Actors">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Actors" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

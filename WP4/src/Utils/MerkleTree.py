@@ -7,7 +7,7 @@ Espone:
   verify_merkle_proof    verifica della prova rispetto alla root
 """
 
-from crypto import hash_SHA256
+from Utils.crypto import hash_SHA256
 
 
 def build_merkle_tree(leaves: list[bytes]) -> tuple[bytes, list[list[bytes]]]:

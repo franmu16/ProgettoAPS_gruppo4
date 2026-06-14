@@ -15,7 +15,7 @@ Interazioni:
 
 import os
 from cryptography.hazmat.primitives import serialization
-from crypto import generate_keys, sign, verify, encrypt_chunked, decrypt_chunked
+from Utils.crypto import generate_keys, sign, verify, encrypt_chunked, decrypt_chunked
 
 
 class ElectionAuthority:

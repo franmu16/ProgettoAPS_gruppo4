@@ -20,7 +20,7 @@ dove:
 import json
 import time
 
-from crypto import sign, encrypt_chunked
+from Utils.crypto import sign, encrypt_chunked
 
 
 def _serialize_M(params: dict) -> bytes:

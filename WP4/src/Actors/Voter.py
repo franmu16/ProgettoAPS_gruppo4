@@ -22,9 +22,9 @@ Nota FIDO2:
 import os
 
 from cryptography.hazmat.primitives import serialization
-from crypto import encrypt_OAEP, sign, verify, hash_SHA256, encrypt_chunked, decrypt_chunked
+from Utils.crypto import encrypt_OAEP, sign, verify, hash_SHA256, encrypt_chunked, decrypt_chunked
 
-from MerkleTree import verify_merkle_proof
+from Utils.MerkleTree import verify_merkle_proof
 
 # ---------------------------------------------------------------------------
 # Voter

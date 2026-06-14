@@ -13,7 +13,7 @@ Responsabilità:
       per preservare il requisito di pseudoanonimato.
 """
 
-from crypto import generate_keys, sign, verify
+from Utils.crypto import generate_keys, sign, verify
 from cryptography.hazmat.primitives import serialization
 
 

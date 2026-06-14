@@ -1,0 +1,24 @@
+# Sphinx 
+docs/build/html/.doctrees/
+docs/build/html/.buildinfo
+docs/build/doctrees/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Ambienti virtuali
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

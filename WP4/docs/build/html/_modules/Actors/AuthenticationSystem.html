@@ -1,0 +1,283 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actors.AuthenticationSystem &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=945aedf1"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/translations.js?v=45930005"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="../../genindex.html" />
+    <link rel="search" title="Cerca" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Codice del modulo</a></li>
+      <li class="breadcrumb-item active">Actors.AuthenticationSystem</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Codice sorgente per Actors.AuthenticationSystem</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Modulo che implementa il Sistema di Autenticazione (SA).</span>
+
+<span class="sd">Responsabilità:</span>
+<span class="sd">    - Registrazione degli elettori tramite FIDO2 (simulato con RSA-PSS)</span>
+<span class="sd">    - Autenticazione degli elettori tramite challenge/response</span>
+<span class="sd">    - Rilascio della prova di autenticazione firmata e cifrata</span>
+
+<span class="sd">Nota: FIDO2 è simulato tramite challenge/response RSA-PSS.</span>
+<span class="sd">In un&#39;implementazione reale si userebbe la libreria python-fido2</span>
+<span class="sd">con hardware dedicato (es. YubiKey, Windows Hello).</span>
+
+<span class="sd">Interazioni:</span>
+<span class="sd">    - Fase 1: autentica l&#39;elettore e rilascia auth_proof</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.crypto</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_keys</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">verify</span><span class="p">,</span> <span class="n">encrypt_chunked</span>
+
+
+<div class="viewcode-block" id="AuthenticationSystem">
+<a class="viewcode-back" href="../../Actors.html#Actors.AuthenticationSystem.AuthenticationSystem">[documenti]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AuthenticationSystem</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ca</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Inizializza il Sistema di Autenticazione.</span>
+<span class="sd">        Genera la propria coppia di chiavi RSA e si registra nella PKI.</span>
+
+<span class="sd">        :param ca: istanza della CertificationAuthority aziendale</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">public_key</span> <span class="o">=</span> <span class="n">generate_keys</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ca</span> <span class="o">=</span> <span class="n">ca</span>
+
+        <span class="c1"># Genera e pubblica il proprio certificato nella PKI</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_certificate</span> <span class="o">=</span> <span class="n">ca</span><span class="o">.</span><span class="n">generate_certificate</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">public_key</span><span class="p">)</span>
+        <span class="n">ca</span><span class="o">.</span><span class="n">publish_certificate</span><span class="p">(</span><span class="s2">&quot;SA&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_certificate</span><span class="p">)</span>
+
+        <span class="c1"># Registro degli elettori: entity_id -&gt; pk_FIDO</span>
+        <span class="c1"># Popolato durante la fase di registrazione FIDO2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_registered_voters</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Registro delle challenge attive: entity_id -&gt; challenge</span>
+        <span class="c1"># Ogni challenge è monouso e viene eliminata dopo la verifica</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># REGISTRAZIONE FIDO2</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="AuthenticationSystem.generate_registration_challenge">
+<a class="viewcode-back" href="../../Actors.html#Actors.AuthenticationSystem.AuthenticationSystem.generate_registration_challenge">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_registration_challenge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase di registrazione FIDO2 - passo 1.</span>
+<span class="sd">        Genera una challenge casuale monouso da inviare all&#39;elettore.</span>
+
+<span class="sd">        :param entity_id: identificativo dell&#39;elettore</span>
+<span class="sd">        :returns: challenge casuale di 256 bit (bytes)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">challenge</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">challenge</span>
+        <span class="k">return</span> <span class="n">challenge</span></div>
+
+
+<div class="viewcode-block" id="AuthenticationSystem.complete_registration">
+<a class="viewcode-back" href="../../Actors.html#Actors.AuthenticationSystem.AuthenticationSystem.complete_registration">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">complete_registration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">pk_fido</span><span class="p">,</span> <span class="n">sigma_reg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase di registrazione FIDO2 - passo 2.</span>
+<span class="sd">        Verifica la firma sulla challenge e registra la chiave FIDO</span>
+<span class="sd">        dell&#39;elettore nel proprio registro.</span>
+
+<span class="sd">        :param entity_id: identificativo dell&#39;elettore</span>
+<span class="sd">        :param pk_fido: chiave pubblica FIDO2 dell&#39;elettore</span>
+<span class="sd">        :param sigma_reg: firma della challenge con sk_FIDO</span>
+<span class="sd">        :returns: True se la registrazione è andata a buon fine</span>
+<span class="sd">        :raises ValueError: se la challenge non esiste o la firma non è valida</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nessuna challenge attiva per </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_fido</span><span class="p">,</span> <span class="n">sigma_reg</span><span class="p">,</span> <span class="n">challenge</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Firma di registrazione non valida&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Registra la chiave FIDO e invalida la challenge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_registered_voters</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">pk_fido</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># AUTENTICAZIONE FIDO2</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="AuthenticationSystem.generate_auth_challenge">
+<a class="viewcode-back" href="../../Actors.html#Actors.AuthenticationSystem.AuthenticationSystem.generate_auth_challenge">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_auth_challenge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 1 - passo 2.</span>
+<span class="sd">        Verifica che l&#39;elettore sia registrato e genera una</span>
+<span class="sd">        challenge casuale monouso.</span>
+
+<span class="sd">        :param entity_id: identificativo dell&#39;elettore</span>
+<span class="sd">        :returns: challenge casuale di 256 bit (bytes)</span>
+<span class="sd">        :raises ValueError: se l&#39;elettore non è registrato</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registered_voters</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Elettore </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2"> non registrato presso il SA&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">challenge</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span>  <span class="c1"># 256 bit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">challenge</span>
+        <span class="k">return</span> <span class="n">challenge</span></div>
+
+
+<div class="viewcode-block" id="AuthenticationSystem.verify_authentication">
+<a class="viewcode-back" href="../../Actors.html#Actors.AuthenticationSystem.AuthenticationSystem.verify_authentication">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_authentication</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">sigma_auth</span><span class="p">,</span> <span class="n">cert_E</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 1 - passi 3 e 4.</span>
+<span class="sd">        Verifica il certificato dell&#39;elettore tramite la CA e</span>
+<span class="sd">        la firma FIDO2 sulla challenge.</span>
+
+<span class="sd">        :param entity_id: identificativo dell&#39;elettore</span>
+<span class="sd">        :param sigma_auth: firma della challenge con sk_FIDO</span>
+<span class="sd">        :param cert_E: certificato digitale dell&#39;elettore</span>
+<span class="sd">        :returns: True se l&#39;autenticazione è valida</span>
+<span class="sd">        :raises ValueError: se il certificato o la firma non sono validi</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Verifica il certificato dell&#39;elettore tramite la CA</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ca</span><span class="o">.</span><span class="n">verify_certificate</span><span class="p">(</span><span class="n">cert_E</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Certificato dell&#39;elettore non valido&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Verifica che la challenge sia attiva</span>
+        <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Nessuna challenge attiva per </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">challenge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+
+        <span class="c1"># Recupera pk_FIDO dal registro e verifica la firma</span>
+        <span class="n">pk_fido</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registered_voters</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="n">pk_fido</span><span class="p">,</span> <span class="n">sigma_auth</span><span class="p">,</span> <span class="n">challenge</span><span class="p">):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Firma FIDO2 non valida&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Challenge monouso: elimina dopo la verifica</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_challenges</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="AuthenticationSystem.release_auth_proof">
+<a class="viewcode-back" href="../../Actors.html#Actors.AuthenticationSystem.AuthenticationSystem.release_auth_proof">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">release_auth_proof</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="n">challenge</span><span class="p">,</span> <span class="n">pk_E</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 1 - passo 5.</span>
+<span class="sd">        Rilascia la prova di autenticazione firmata con sk_SA</span>
+<span class="sd">        e cifrata con pk_E.</span>
+
+<span class="sd">        Il messaggio firmato è: entity_id || challenge</span>
+<span class="sd">        Il messaggio cifrato è: entity_id || challenge || sigma_auth_proof</span>
+
+<span class="sd">        :param entity_id: identificativo dell&#39;elettore autenticato</span>
+<span class="sd">        :param challenge: challenge usata durante l&#39;autenticazione</span>
+<span class="sd">        :param pk_E: chiave pubblica RSA dell&#39;elettore (per cifrare)</span>
+<span class="sd">        :returns: auth_proof cifrata con pk_E (bytes)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Costruisce il messaggio da firmare</span>
+        <span class="n">entity_bytes</span> <span class="o">=</span> <span class="n">entity_id</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">entity_bytes</span> <span class="o">+</span> <span class="n">challenge</span>
+
+        <span class="c1"># Firma con sk_SA</span>
+        <span class="n">sigma_auth_proof</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+        <span class="c1"># Cifra (entity_id || challenge || firma) con pk_E tramite chunking</span>
+        <span class="c1"># (entity_id + challenge 32B + sigma 256B &gt; 190B)</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">entity_bytes</span> <span class="o">+</span> <span class="n">challenge</span> <span class="o">+</span> <span class="n">sigma_auth_proof</span>
+        <span class="n">auth_proof</span> <span class="o">=</span> <span class="n">encrypt_chunked</span><span class="p">(</span><span class="n">pk_E</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">auth_proof</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

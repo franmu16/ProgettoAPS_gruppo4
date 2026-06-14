@@ -1,0 +1,187 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>performance module &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=945aedf1"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=45930005"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="genindex.html" />
+    <link rel="search" title="Cerca" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">performance module</a><ul>
+<li><a class="reference internal" href="#performance.benchmark_dimensioni"><code class="docutils literal notranslate"><span class="pre">benchmark_dimensioni()</span></code></a></li>
+<li><a class="reference internal" href="#performance.benchmark_fasi"><code class="docutils literal notranslate"><span class="pre">benchmark_fasi()</span></code></a></li>
+<li><a class="reference internal" href="#performance.benchmark_primitive"><code class="docutils literal notranslate"><span class="pre">benchmark_primitive()</span></code></a></li>
+<li><a class="reference internal" href="#performance.benchmark_scalabilita"><code class="docutils literal notranslate"><span class="pre">benchmark_scalabilita()</span></code></a></li>
+<li><a class="reference internal" href="#performance.benchmark_verifiche"><code class="docutils literal notranslate"><span class="pre">benchmark_verifiche()</span></code></a></li>
+<li><a class="reference internal" href="#performance.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#performance.misura_tempo"><code class="docutils literal notranslate"><span class="pre">misura_tempo()</span></code></a></li>
+<li><a class="reference internal" href="#performance.print_dimensione"><code class="docutils literal notranslate"><span class="pre">print_dimensione()</span></code></a></li>
+<li><a class="reference internal" href="#performance.print_header"><code class="docutils literal notranslate"><span class="pre">print_header()</span></code></a></li>
+<li><a class="reference internal" href="#performance.print_risultato"><code class="docutils literal notranslate"><span class="pre">print_risultato()</span></code></a></li>
+<li><a class="reference internal" href="#performance.separatore"><code class="docutils literal notranslate"><span class="pre">separatore()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">performance module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/performance.rst.txt" rel="nofollow"> Visualizza sorgente pagina</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-performance">
+<span id="performance-module"></span><h1>performance module<a class="headerlink" href="#module-performance" title="Link to this heading"></a></h1>
+<p>ì
+Misurazione delle prestazioni del protocollo di voto elettronico.</p>
+<dl class="simple">
+<dt>Misura:</dt><dd><ol class="arabic simple">
+<li><p>Costo computazionale delle primitive crittografiche</p></li>
+<li><p>Dimensione dei messaggi scambiati</p></li>
+<li><p>Latenza delle operazioni di verifica</p></li>
+<li><p>Tempi di interazione per fase</p></li>
+<li><p>Scalabilità al crescere del numero di elettori</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.benchmark_dimensioni">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">benchmark_dimensioni</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#benchmark_dimensioni"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.benchmark_dimensioni" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.benchmark_fasi">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">benchmark_fasi</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#benchmark_fasi"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.benchmark_fasi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.benchmark_primitive">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">benchmark_primitive</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#benchmark_primitive"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.benchmark_primitive" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.benchmark_scalabilita">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">benchmark_scalabilita</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#benchmark_scalabilita"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.benchmark_scalabilita" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.benchmark_verifiche">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">benchmark_verifiche</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#benchmark_verifiche"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.benchmark_verifiche" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.main">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#main"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.misura_tempo">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">misura_tempo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">funzione</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ripetizioni</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#misura_tempo"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.misura_tempo" title="Link to this definition"></a></dt>
+<dd><p>Esegue una funzione N volte e restituisce:
+(media_ms, min_ms, max_ms)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.print_dimensione">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">print_dimensione</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">messaggio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensione</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#print_dimensione"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.print_dimensione" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.print_header">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">print_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#print_header"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.print_header" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.print_risultato">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">print_risultato</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operazione</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">media</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">massimo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unita</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ms'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#print_risultato"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.print_risultato" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="performance.separatore">
+<span class="sig-prename descclassname"><span class="pre">performance.</span></span><span class="sig-name descname"><span class="pre">separatore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/performance.html#separatore"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#performance.separatore" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

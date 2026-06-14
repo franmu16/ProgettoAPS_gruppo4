@@ -20,13 +20,13 @@ Uso:
 import json
 import time
 
-from crypto import generate_keys, verify
-from CertificationAuthority import CertificationAuthority as CA
-from AuthenticationSystem import AuthenticationSystem as SA
-from ElectionAuthority import ElectionAuthority as AE
-from Director import Director
-from Voter import Voter
-from ElectronicBallotBox import ElectronicBallotBox as UE
+from Utils.crypto import generate_keys, verify
+from Actors.CertificationAuthority import CertificationAuthority as CA
+from Actors.AuthenticationSystem import AuthenticationSystem as SA
+from Actors.ElectionAuthority import ElectionAuthority as AE
+from Actors.Director import Director
+from Actors.Voter import Voter
+from Actors.ElectronicBallotBox import ElectronicBallotBox as UE
 
 
 # =============================================================================

@@ -13,14 +13,14 @@ import time
 import statistics
 import os
 
-from crypto import generate_keys, encrypt_OAEP, decrypt_OAEP, sign, verify, hash_SHA256, encrypt_chunked, decrypt_chunked
-from CertificationAuthority import CertificationAuthority as CA
-from AuthenticationSystem import AuthenticationSystem as SA
-from ElectionAuthority import ElectionAuthority as AE
-from Director import Director
-from Voter import Voter
-from ElectronicBallotBox import ElectronicBallotBox as UE
-from MerkleTree import build_merkle_tree, generate_merkle_proof, verify_merkle_proof
+from Utils.crypto import generate_keys, encrypt_OAEP, decrypt_OAEP, sign, verify, hash_SHA256, encrypt_chunked, decrypt_chunked
+from Actors.CertificationAuthority import CertificationAuthority as CA
+from Actors.AuthenticationSystem import AuthenticationSystem as SA
+from Actors.ElectionAuthority import ElectionAuthority as AE
+from Actors.Director import Director
+from Actors.Voter import Voter
+from Actors.ElectronicBallotBox import ElectronicBallotBox as UE
+from Utils.MerkleTree import build_merkle_tree, generate_merkle_proof, verify_merkle_proof
 
 
 # =============================================================================

@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>attacks module &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=945aedf1"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=45930005"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="genindex.html" />
+    <link rel="search" title="Cerca" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">attacks module</a><ul>
+<li><a class="reference internal" href="#attacks.attacco_certificato_contraffatto"><code class="docutils literal notranslate"><span class="pre">attacco_certificato_contraffatto()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.attacco_collusione_ae_ue"><code class="docutils literal notranslate"><span class="pre">attacco_collusione_ae_ue()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.attacco_doppia_abilitazione"><code class="docutils literal notranslate"><span class="pre">attacco_doppia_abilitazione()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.attacco_modifica_scheda"><code class="docutils literal notranslate"><span class="pre">attacco_modifica_scheda()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.attacco_replay"><code class="docutils literal notranslate"><span class="pre">attacco_replay()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.attacco_token_falso"><code class="docutils literal notranslate"><span class="pre">attacco_token_falso()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.attacco_ue_disonesta"><code class="docutils literal notranslate"><span class="pre">attacco_ue_disonesta()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.print_attack"><code class="docutils literal notranslate"><span class="pre">print_attack()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.print_fail"><code class="docutils literal notranslate"><span class="pre">print_fail()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.print_header"><code class="docutils literal notranslate"><span class="pre">print_header()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.print_ok"><code class="docutils literal notranslate"><span class="pre">print_ok()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.print_step"><code class="docutils literal notranslate"><span class="pre">print_step()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.separatore"><code class="docutils literal notranslate"><span class="pre">separatore()</span></code></a></li>
+<li><a class="reference internal" href="#attacks.setup_sistema"><code class="docutils literal notranslate"><span class="pre">setup_sistema()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">attacks module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/attacks.rst.txt" rel="nofollow"> Visualizza sorgente pagina</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-attacks">
+<span id="attacks-module"></span><h1>attacks module<a class="headerlink" href="#module-attacks" title="Link to this heading"></a></h1>
+<p>Simulazione degli attacchi al protocollo di voto elettronico.</p>
+<dl class="simple">
+<dt>Per ogni attacco vengono mostrati:</dt><dd><ul class="simple">
+<li><p>Descrizione dell’attacco</p></li>
+<li><p>Esito atteso</p></li>
+<li><p>Conferma che la contromisura funziona (✓) o che il limite è reale (✗)</p></li>
+</ul>
+</dd>
+<dt>Attacchi simulati:</dt><dd><ol class="arabic simple">
+<li><p>Replay attack          — reinvio di una scheda intercettata</p></li>
+<li><p>Token auto-generato    — token firmato con chiave non autorizzata</p></li>
+<li><p>Certificato contraffatto — MitM sostituisce il certificato del SA</p></li>
+<li><p>Doppia abilitazione    — AE disonesta emette due token per lo stesso elettore</p></li>
+<li><p>Modifica scheda        — MitM altera il ciphertext in transito</p></li>
+<li><p>Collusione AE+UE       — violazione dello pseudoanonimato</p></li>
+<li><p>UE disonesta           — non sovrascrive, accetta schede multiple</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_certificato_contraffatto">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_certificato_contraffatto</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_certificato_contraffatto"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_certificato_contraffatto" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_collusione_ae_ue">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_collusione_ae_ue</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_collusione_ae_ue"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_collusione_ae_ue" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_doppia_abilitazione">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_doppia_abilitazione</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_doppia_abilitazione"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_doppia_abilitazione" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_modifica_scheda">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_modifica_scheda</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_modifica_scheda"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_modifica_scheda" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_replay">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_replay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_replay"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_replay" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_token_falso">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_token_falso</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_token_falso"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_token_falso" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.attacco_ue_disonesta">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">attacco_ue_disonesta</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#attacco_ue_disonesta"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.attacco_ue_disonesta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.main">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#main"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.print_attack">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">print_attack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#print_attack"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.print_attack" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.print_fail">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">print_fail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#print_fail"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.print_fail" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.print_header">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">print_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#print_header"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.print_header" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.print_ok">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">print_ok</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#print_ok"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.print_ok" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.print_step">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">print_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#print_step"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.print_step" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.separatore">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">separatore</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#separatore"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.separatore" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="attacks.setup_sistema">
+<span class="sig-prename descclassname"><span class="pre">attacks.</span></span><span class="sig-name descname"><span class="pre">setup_sistema</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/attacks.html#setup_sistema"><span class="viewcode-link"><span class="pre">[sorgente]</span></span></a><a class="headerlink" href="#attacks.setup_sistema" title="Link to this definition"></a></dt>
+<dd><p>Inizializza il sistema con CA, SA, AE, UE e un elettore.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

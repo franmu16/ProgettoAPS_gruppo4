@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="it" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Actors.ElectronicBallotBox &mdash; Documentazione Docs 1.0 </title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=945aedf1"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/translations.js?v=45930005"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Indice" href="../../genindex.html" />
+    <link rel="search" title="Cerca" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Docs
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Cerca documenti" aria-label="Cerca documenti" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Menu di navigazione">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Menu navigazione dispositivi mobili" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Naviga tra le pagine">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Codice del modulo</a></li>
+      <li class="breadcrumb-item active">Actors.ElectronicBallotBox</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Codice sorgente per Actors.ElectronicBallotBox</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Urna Elettronica (UE), Fasi 4, 5 e supporto alla Fase 6.</span>
+
+<span class="sd">Responsabilità (WP2 2.12.5, 2.12.6, 2.12.7):</span>
+<span class="sd">  Fase 4 : riceve la scheda cifrata dall&#39;elettore (c_trans);</span>
+<span class="sd">             decifra con sk_UE tramite RSA-OAEP;</span>
+<span class="sd">             verifica nonce (anti-replay);</span>
+<span class="sd">             verifica sigma_token tramite pk_AE (RSA-PSS);</span>
+<span class="sd">             calcola ballot_id = H(token_id || cv || nonce);</span>
+<span class="sd">             registra (token_id → {cv, ballot_id, nonce});</span>
+<span class="sd">             emette ricevuta = sign(sk_UE, ballot_id || nonce).</span>
+
+<span class="sd">  Fase 5 : al sopraggiungere di T_close, riceve K_priv_cifr cifrata da AE;</span>
+<span class="sd">             decifra le schede con K_priv_cifr;</span>
+<span class="sd">             valida le preferenze rispetto a C;</span>
+<span class="sd">             costruisce il Merkle Tree (foglie = ballot_id, shuffle incluso);</span>
+<span class="sd">             firma la radice con sk_UE;</span>
+<span class="sd">             pubblica il verbale firmato;</span>
+<span class="sd">             cancella K_priv_cifr dalla memoria.</span>
+
+<span class="sd">  Fase 6 : genera Merkle Proof per un dato token_id (richiesta individuale).</span>
+
+<span class="sd">Nota: tutti i messaggi hanno dimensione &lt; 150 byte.</span>
+<span class="sd">      Si usa direttamente RSA-OAEP senza chunking.</span>
+<span class="sd">      La scheda bianca è rappresentata da cv = b&quot;\x00&quot; (WP2 2.12.4).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.hazmat.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">serialization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.hazmat.primitives.asymmetric.rsa</span><span class="w"> </span><span class="kn">import</span> <span class="n">RSAPrivateKey</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.crypto</span><span class="w"> </span><span class="kn">import</span> <span class="n">decrypt_OAEP</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">verify</span><span class="p">,</span> <span class="n">hash_SHA256</span><span class="p">,</span> <span class="n">decrypt_chunked</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Utils.MerkleTree</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_merkle_tree</span><span class="p">,</span> <span class="n">generate_merkle_proof</span>
+
+
+<div class="viewcode-block" id="ElectronicBallotBox">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox">[documenti]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElectronicBallotBox</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Urna Elettronica.</span>
+
+<span class="sd">    Gestisce le Fasi 4, 5 e il supporto alla Fase 6 del protocollo WP2.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sk_ue</span><span class="p">,</span> <span class="n">pk_ue</span><span class="p">,</span> <span class="n">pk_ae</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Argomenti:</span>
+<span class="sd">            sk_ue       chiave privata RSA dell&#39;UE (per decifratura e firma)</span>
+<span class="sd">            pk_ue       chiave pubblica RSA dell&#39;UE (distribuita via PKI)</span>
+<span class="sd">            pk_ae       chiave pubblica AE (per verifica sigma_token)</span>
+<span class="sd">            candidates  lista C dei candidati legittimi (da Fase 0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sk_ue</span> <span class="o">=</span> <span class="n">sk_ue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pk_ue</span> <span class="o">=</span> <span class="n">pk_ue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pk_ae</span> <span class="o">=</span> <span class="n">pk_ae</span>
+        <span class="c1"># Includi scheda bianca (WP2 2.12.4)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span> <span class="o">|</span> <span class="p">{</span><span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span><span class="p">}</span>
+
+        <span class="c1"># Registro schede: token_id (bytes) → {&quot;cv&quot;: bytes, &quot;ballot_id&quot;: bytes, &quot;nonce&quot;: bytes}</span>
+        <span class="c1"># Politica di sovrascrittura (WP2 2.12.5 — modifica voto)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Registro nonce già visti — anti-replay (WP2 2.12.5 passo 3b)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seen_nonces</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># Stato post-scrutinio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_tree</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_root</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_root</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tally</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbale</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_verbale</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Ordine delle foglie nel Merkle Tree (post-shuffle) per generare prove</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_order</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 4 – Ricezione e registrazione della scheda</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ElectronicBallotBox.receive_ballot">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.receive_ballot">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_ballot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c_trans</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 4 lato UE (WP2 2.12.5).</span>
+
+<span class="sd">        Decifra c_trans con sk_UE (RSA-OAEP); verifica nonce e σ_token;</span>
+<span class="sd">        calcola ballot_id; registra la scheda; restituisce la ricevuta firmata.</span>
+
+<span class="sd">        Formato payload (costruito da Voter.prepare_ballot):</span>
+<span class="sd">            4B len_cv | cv | 2B len_tok | token_id  | 4B len_sig | σ_token | 32B nonce</span>
+
+<span class="sd">        Restituisce la ricevuta (bytes) se tutti i controlli passano, None altrimenti.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Passo a – decifratura tramite chunking del payload (WP2 2.12.5 passo 3a)</span>
+        <span class="c1"># (cv + token + sigma + nonce può superare 190B)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">decrypt_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk_ue</span><span class="p">,</span> <span class="n">c_trans</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Parsing del payload</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">len_cv</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">len_cv</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="n">len_cv</span>
+
+        <span class="n">len_tok</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="mi">2</span>
+        <span class="n">token_id</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">len_tok</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="n">len_tok</span>
+
+        <span class="n">len_sig</span> <span class="o">=</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="mi">4</span>
+        <span class="n">sigma_token</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">len_sig</span><span class="p">]</span>
+        <span class="n">offset</span> <span class="o">+=</span> <span class="n">len_sig</span>
+
+        <span class="n">nonce</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">32</span><span class="p">]</span>
+
+        <span class="c1"># Passo b – verifica nonce anti-replay (WP2 2.12.5 passo 3b)</span>
+        <span class="k">if</span> <span class="n">nonce</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seen_nonces</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Passo c – verifica sigma_token con pk_AE (RSA-PSS, WP2 2.12.5 passo 3c)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pk_ae</span><span class="p">,</span> <span class="n">sigma_token</span><span class="p">,</span> <span class="n">token_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Passo d – calcolo ballot_id (WP2 2.12.5 passo 3d)</span>
+        <span class="n">ballot_id</span> <span class="o">=</span> <span class="n">hash_SHA256</span><span class="p">(</span><span class="n">token_id</span> <span class="o">+</span> <span class="n">cv</span> <span class="o">+</span> <span class="n">nonce</span><span class="p">)</span>
+
+        <span class="c1"># Passo e – registrazione con politica di sovrascrittura</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">token_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;cv&quot;</span><span class="p">:</span> <span class="n">cv</span><span class="p">,</span>
+            <span class="s2">&quot;ballot_id&quot;</span><span class="p">:</span> <span class="n">ballot_id</span><span class="p">,</span>
+            <span class="s2">&quot;nonce&quot;</span><span class="p">:</span> <span class="n">nonce</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seen_nonces</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nonce</span><span class="p">)</span>
+
+        <span class="c1"># Passo f – emissione ricevuta firmata (WP2 2.12.5 passo 3d / Fase 4 passo 4)</span>
+        <span class="n">receipt</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk_ue</span><span class="p">,</span> <span class="n">ballot_id</span> <span class="o">+</span> <span class="n">nonce</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">receipt</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 5 – Scrutinio e pubblicazione</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ElectronicBallotBox.close_and_tally">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.close_and_tally">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close_and_tally</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k_priv_cifr_encrypted</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 5 lato UE (WP2 2.12.6).</span>
+
+<span class="sd">        Argomenti:</span>
+<span class="sd">            k_priv_cifr_encrypted – encrypt_OAEP(pk_UE, K_priv_cifr_pem)</span>
+
+<span class="sd">        Passi:</span>
+<span class="sd">          1. Decifra K_priv_cifr con sk_UE (RSA-OAEP).</span>
+<span class="sd">          2. Decifra ogni cv con K_priv_cifr e valida v ∈ C.</span>
+<span class="sd">          3. Costruisce il Merkle Tree (foglie = ballot_id, shuffle preventivo).</span>
+<span class="sd">          4. Firma la radice: sigma_root = sign(sk_UE, root).</span>
+<span class="sd">          5. Compila e firma il verbale.</span>
+<span class="sd">          6. Cancella K_priv_cifr dalla memoria.</span>
+
+<span class="sd">        Restituisce: 4B len(verbale_json) | verbale_json | sigma_verbale</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Passo 1 – decifratura di K_priv_cifr tramite chunking (WP2 2.12.6 passo 1)</span>
+        <span class="c1"># (K_priv_cifr PEM ~1700B &gt;&gt; 190B)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">k_priv_cifr</span> <span class="o">=</span> <span class="n">decrypt_chunked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk_ue</span><span class="p">,</span> <span class="n">k_priv_cifr_encrypted</span><span class="p">)</span>
+            <span class="n">k_priv_cifr</span><span class="p">:</span> <span class="n">RSAPrivateKey</span> <span class="o">=</span> <span class="n">serialization</span><span class="o">.</span><span class="n">load_pem_private_key</span><span class="p">(</span>
+                <span class="n">k_priv_cifr</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Impossibile decifrare K_priv_cifr.&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+        <span class="c1"># Passo 2 – decifratura e validazione delle schede (WP2 2.12.6 passo 2)</span>
+        <span class="n">tally</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">valid_entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">token_id</span><span class="p">,</span> <span class="n">record</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">vote</span> <span class="o">=</span> <span class="s2">&quot;__scheda_nulla__&quot;</span>  <span class="c1"># Default se la decifratura o la validazione falliscono</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">vote_bytes</span> <span class="o">=</span> <span class="n">decrypt_OAEP</span><span class="p">(</span><span class="n">k_priv_cifr</span><span class="p">,</span> <span class="n">record</span><span class="p">[</span><span class="s2">&quot;cv&quot;</span><span class="p">])</span>
+                <span class="n">decoded_vote</span> <span class="o">=</span> <span class="n">vote_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">if</span> <span class="n">vote_bytes</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span>
+                
+                <span class="k">if</span> <span class="n">decoded_vote</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span><span class="p">:</span>
+                    <span class="n">vote</span> <span class="o">=</span> <span class="n">decoded_vote</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># Mantiene il flag &#39;__scheda_nulla__&#39; senza scartare la foglia</span>
+
+            <span class="c1"># Aggiorna il conteggio dei voti</span>
+            <span class="n">tally</span><span class="p">[</span><span class="n">vote</span><span class="p">]</span> <span class="o">=</span> <span class="n">tally</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vote</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            
+            <span class="c1"># Inserisce SEMPRE l&#39;elemento per il Merkle Tree</span>
+            <span class="n">valid_entries</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;token_id&quot;</span><span class="p">:</span> <span class="n">token_id</span><span class="p">,</span>
+                <span class="s2">&quot;cv&quot;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">&quot;cv&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;ballot_id&quot;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">&quot;ballot_id&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;nonce&quot;</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">&quot;nonce&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;vote&quot;</span><span class="p">:</span> <span class="n">vote</span><span class="p">,</span>
+            <span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tally</span> <span class="o">=</span> <span class="n">tally</span>
+
+        <span class="c1"># Passo 3 – costruzione Merkle Tree con shuffle (WP2 2.12.6 passo 3)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_entries</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Nessuna scheda valida: impossibile costruire il Merkle Tree.&quot;</span><span class="p">)</span>
+
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">valid_entries</span><span class="p">)</span>
+        <span class="n">leaves</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;ballot_id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">valid_entries</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_order</span> <span class="o">=</span> <span class="n">leaves</span>
+
+        <span class="n">root</span><span class="p">,</span> <span class="n">tree</span> <span class="o">=</span> <span class="n">build_merkle_tree</span><span class="p">(</span><span class="n">leaves</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_tree</span> <span class="o">=</span> <span class="n">tree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_root</span> <span class="o">=</span> <span class="n">root</span>
+
+        <span class="c1"># Passo 4 – firma della radice (WP2 2.12.6 passo 3)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_root</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk_ue</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
+
+        <span class="c1"># Passo 5 – compilazione e firma del verbale (WP2 2.12.6 passo 4)</span>
+        <span class="n">token_ids_hex</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;token_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">valid_entries</span><span class="p">]</span>
+        <span class="n">verbale_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;risultato&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="p">(</span><span class="n">k</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;</span><span class="se">\x00</span><span class="s2">&quot;</span> <span class="k">else</span> <span class="s2">&quot;__scheda_bianca__&quot;</span><span class="p">):</span> <span class="n">v</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">tally</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;merkle_root&quot;</span><span class="p">:</span> <span class="n">root</span><span class="o">.</span><span class="n">hex</span><span class="p">(),</span>
+            <span class="s2">&quot;num_schede&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_entries</span><span class="p">),</span>
+            <span class="s2">&quot;token_ids&quot;</span><span class="p">:</span> <span class="n">token_ids_hex</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">verbale_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">verbale_dict</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="n">sigma_verbale</span> <span class="o">=</span> <span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sk_ue</span><span class="p">,</span> <span class="n">verbale_json</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbale</span> <span class="o">=</span> <span class="n">verbale_json</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_verbale</span> <span class="o">=</span> <span class="n">sigma_verbale</span>
+
+        <span class="c1"># Passo 6 – cancellazione sicura di K_priv_cifr (WP2 2.12.6 passo 5)</span>
+        <span class="k">del</span> <span class="n">k_priv_cifr</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">verbale_json</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">verbale_json</span> <span class="o">+</span> <span class="n">sigma_verbale</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Fase 6 – Supporto alla verifica individuale</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ElectronicBallotBox.get_merkle_proof">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_proof">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_merkle_proof</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">token_id</span><span class="p">:</span> <span class="nb">bytes</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]],</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fase 6 lato UE (WP2 2.12.7 passo ii).</span>
+
+<span class="sd">        Restituisce (proof, root, sigma_root) se il token_id è registrato</span>
+<span class="sd">        nel Merkle Tree, None altrimenti.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_tree</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_order</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">ballot_id</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">&quot;ballot_id&quot;</span><span class="p">]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">leaf_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ballot_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">proof</span> <span class="o">=</span> <span class="n">generate_merkle_proof</span><span class="p">(</span><span class="n">leaf_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_tree</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">proof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_root</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># Getter methods per Fase 5 e supporto Fase 6</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ElectronicBallotBox.get_merkle_root">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.get_merkle_root">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_merkle_root</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restituisce la radice del Merkle Tree calcolata in Fase 5.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merkle_root</span></div>
+
+
+<div class="viewcode-block" id="ElectronicBallotBox.get_sigma_root">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.get_sigma_root">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sigma_root</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restituisce la firma della radice Merkle calcolata in Fase 5.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sigma_root</span></div>
+
+
+<div class="viewcode-block" id="ElectronicBallotBox.get_tally">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.get_tally">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_tally</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restituisce il conteggio dei voti calcolato in Fase 5.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tally</span></div>
+
+
+<div class="viewcode-block" id="ElectronicBallotBox.get_num_valid_ballots">
+<a class="viewcode-back" href="../../Actors.html#Actors.ElectronicBallotBox.ElectronicBallotBox.get_num_valid_ballots">[documenti]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_num_valid_ballots</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restituisce il numero di schede registrate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Musto Francesco, Scermino Annamaria.</p>
+  </div>
+
+  Realizzato con <a href="https://www.sphinx-doc.org/">Sphinx</a> usando un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">tema</a>
+    fornito da <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
