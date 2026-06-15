@@ -1,6 +1,6 @@
 # 🗳️ Sistema di Votazione Elettronica Sicuro
 
-**Algoritmi e Protocolli per la Sicurezza** — Progetto Finale sviluppato da 
+**Algoritmi e Protocolli per la Sicurezza** — Progetto Finale sviluppato da Musto Francesco e Annamaria Scermino
 
 Un'implementazione crittografica completa di un sistema di votazione elettronico pseudoanonimo, trasparente e verificabile, realizzato per una azienza ideale **Fantasy Company** con supporto a elezioni interne distribuite su più sedi operative.
 
@@ -85,36 +85,3 @@ Implementazione Python con misurazioni sperimentali di efficienza.
 - **Simulazione degli attacchi** (7 scenari)
 
 ---
-
-## 📂 Struttura dei File
----
-
-ProgettoAPS_gruppo4/
-├── WP4/
-│   ├── src/
-│   │   ├── main.py                          # Simulazione completa del protocollo
-│   │   ├── attacks.py                       # Attacchi al protocollo e contromisure
-│   │   │
-│   │   ├── Actors/
-│   │   │   ├── CertificationAuthority.py    # Autorità di Certificazione (CA)
-│   │   │   ├── AuthenticationSystem.py      # Sistema di Autenticazione (SA)
-│   │   │   ├── ElectionAuthority.py         # Autorità Elettorale (AE)
-│   │   │   ├── Director.py                  # Direttore Elettorale (D)
-│   │   │   ├── Voter.py                     # Elettore (E)
-│   │   │   └── ElectronicBallotBox.py       # Urna Elettronica (UE)
-│   │   │
-│   │   └── Utils/
-│   │       ├── crypto.py                    # Primitive crittografiche (RSA-OAEP, RSA-PSS, SHA-256)
-│   │       └── MerkleTree.py                # Struttura Merkle Tree per verifica schede
-│   │
-│   └── docs/
-│       ├── source/
-│       │   ├── conf.py                      # Configurazione Sphinx
-│       │   └── index.rst                    # Indice documentazione
-│       └── build/                           # Output HTML generato
-│
-├── Relazione.pdf                            # Relazione tecnica del progetto
-├── README.md                                # Questo file
-├── .gitignore                               # File da escludere da Git
-└── .gitattributes                           # Configurazione attributi Git
-```
